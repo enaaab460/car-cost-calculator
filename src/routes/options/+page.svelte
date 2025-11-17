@@ -12,7 +12,7 @@
     }
 
     // Default presets
-    let yearlyOdometer = $state(12);
+    let yearlyOdometer = $state(13.5);
     let haggle = $state(15);
     let typicalLife = $state(15);
 
