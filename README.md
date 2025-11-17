@@ -1,6 +1,6 @@
 Calculator to estimate the cost of used cars using double-declining balance (DDB) depreciation. Modifies supported pages to encode price with suggestions, and orders listings in decreasing order of discount from fair price. Can link to other websites: KBB, edmunds, NICB
 
-There is no backend and no telemetry. Firefox might sync extension data if logged in, for ease of use and persistence of data across devices (Pcs and Androids) Not affiliated with any website or service, preloaded in the app or otherwise.
+There is no backend and no telemetry. Firefox might sync extension data if logged in, for ease of use and persistence of data across devices (Pcs and Androids). Not affiliated with any website or service, preloaded in the app or otherwise.
 
 Price is calculated as $$\text{Price} = (1 - 2/\text{life})^\text{years} \cdot \text{new-OTD-price}$$
 
