@@ -1,6 +1,6 @@
 Calculator to estimate the cost of used cars using double-declining balance (DDB) depreciation. Modifies supported pages to encode price with suggestions, and orders listings in decreasing order of discount from fair price. Can link to other websites: KBB, edmunds, NICB
 
-There is no backend and no telemetry. Not affiliated with any website or service, preloaded in the app or otherwise.
+There is no backend and no telemetry. Firefox might sync extension data if logged in, for ease of use and persistence of data across devices (Pcs and Androids) Not affiliated with any website or service, preloaded in the app or otherwise.
 
 Price is calculated as $$\text{Price} = (1 - 2/\text{life})^\text{years} \cdot \text{new-OTD-price}$$
 
@@ -23,12 +23,14 @@ bland = second quarter of life, depreciation slightly slower than age (sweet spo
 underlined = second half of life, very slow depreciation, running but might need major repairs depending on model and use.
 crossed-out = exceeded its expected life, each day is a gift, wheels might fall off tomorrow.
 
-## Single Mode
+Hovering over the price in either mode will show a brief summary of the car discount, fair price, and calculated age
+
+## Single Mode (Alt-Q)
 Allows plotting where the car stands relative to the depreciation curve, and price styles. If the css selectors of the website are registered, it will automatically parse it for the year, miles and price. It can be still be used standalone without registering the website. If the name of the car is the same as KBB, then using the KBB button will allow quick access to kbb price estimator. If the trim is also the same, the '+trim' will provide 1-click shortcut. Edmunds support is also available but is mainly useful for specs, recalls, and suggested OTD price.
 
 The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the service chosen in the settings.
 
-## Multiple mode
+## Multiple mode (Alt-W)
 Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Listings can be blacklisting from the context menu (right click menu).
 
 ## Out-the-door price tangent
