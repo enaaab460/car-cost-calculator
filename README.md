@@ -1,5 +1,10 @@
 Open Source Calculator to estimate the cost of used cars using double-declining balance (DDB) depreciation. Modifies supported pages to encode price with suggestions, and orders listings in decreasing order of discount from fair price. Can link to other websites: KBB, edmunds, NICB
 
+Price is calculated as $$\text{Price} = (1 - 2/\text{life})^\text{years} \cdot \text{new-OTD-price}$$
+
+where $$\text{years} = (\text{age of model} + (\text{odometer} / \text{yearlyOdometer})) / 2$$
+
+
 There is no backend and no telemetry. Not affiliated with any website or service, preloaded in the app or otherwise.
 
 # How to install from source:
