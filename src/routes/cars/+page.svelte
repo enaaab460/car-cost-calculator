@@ -14,7 +14,7 @@
 
     onMount(() => {
         // Load saved presets when the component mounts
-        browser.storage.sync.get(['carPresets','typicalLife']).then((result) => {
+        chrome.storage.sync.get(['carPresets','typicalLife']).then((result) => {
             if (result.carPresets) {
                 carPresets = result.carPresets;
             }
@@ -28,11 +28,11 @@
             // Filter out any empty name rows before saving
             carPresets: carPresets.filter(p => p.name.trim() !== ''),
         }
-        browser.storage.sync.set($state.snapshot(toSave)).then(() => {
+        chrome.storage.sync.set($state.snapshot(toSave)).then(() => {
             statusText = 'Car presets saved.';
             setTimeout(() => { statusText = ''; }, 1500);
-            // browser.storage.sync.remove('scrapedData');
-            browser.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
+            // chrome.storage.sync.remove('scrapedData');
+            chrome.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
         });
     }
 

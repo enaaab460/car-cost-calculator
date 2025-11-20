@@ -1,37 +1,37 @@
 // static/background.js
-browser.runtime.onInstalled.addListener(() => {
-  browser.contextMenus.create({
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
     id: "get-car-data-single",
     title: "Single Car",
     contexts: ["page"],
   });
 
-  browser.contextMenus.create({
+  chrome.contextMenus.create({
     id: "get-car-data-multiple",
     title: "Multiple Cars",
     contexts: ["page"],
   });
 
-  browser.contextMenus.create({
+  chrome.contextMenus.create({
     id: "sort-cars",
     title: "Sort Cars",
     contexts: ["page"],
   });
 
-  browser.contextMenus.create({
+  chrome.contextMenus.create({
     id: "clear-black-list",
     title: "Clear this Black list ",
     contexts: ["page"],
   });
 
-  browser.contextMenus.create({
+  chrome.contextMenus.create({
     id: "black-list-listing",
     title: "Black list listing",
     contexts: ["link"],
   });
 });
 
-browser.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "get-car-data-single") {
     getCarData('single');
   } else if (info.menuItemId === "get-car-data-multiple") {
@@ -45,7 +45,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-browser.commands.onCommand.addListener((command) => {
+chrome.commands.onCommand.addListener((command) => {
   if (command === "get-car-data-single") {
     getCarData('single');
   } else if (command === "get-car-data-multiple") {
@@ -53,7 +53,7 @@ browser.commands.onCommand.addListener((command) => {
   } 
 });
 
-browser.runtime.onMessage.addListener((message, sender, sendResponse)=>{
+chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     if (message === "get-car-data-single") {
         sendResponse(getCarData('single'))
     } else if (message === "get-car-data-multiple") {
@@ -63,9 +63,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     }
 });
 
-browser.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
     if (notificationId === 'confirm-override') {
-        const { tempNewScrapedData, tempExistingData } = await browser.storage.local.get(['tempNewScrapedData', 'tempExistingData']);
+        const { tempNewScrapedData, tempExistingData } = await chrome.storage.local.get(['tempNewScrapedData', 'tempExistingData']);
 
         let finalData;
         if (buttonIndex === 0) { // Override
@@ -74,20 +74,20 @@ browser.notifications.onButtonClicked.addListener(async (notificationId, buttonI
             finalData = [...tempExistingData, ...tempNewScrapedData];
         }
 
-        await browser.storage.sync.set({ 'scrapedMultiple': finalData });
-        await browser.storage.local.remove(['tempNewScrapedData', 'tempExistingData']);
+        await chrome.storage.sync.set({ 'scrapedMultiple': finalData });
+        await chrome.storage.local.remove(['tempNewScrapedData', 'tempExistingData']);
     }
 });
 
 async function getCarData(mode) {
     // if (!tab.id) return;
-    var tab = await browser.tabs.query({active: true, currentWindow: true})
+    var tab = await chrome.tabs.query({active: true, currentWindow: true})
     tab = tab[0]
     if (!tab) return
     let tabId = tab.id
-    browser.storage.sync.remove("scrapedSingle")
+    chrome.storage.sync.remove("scrapedSingle")
     const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'scrapedSingle', 'scrapedMultiple', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider'];
-    var result = await browser.storage.sync.get(keys)
+    var result = await chrome.storage.sync.get(keys)
     if (!result) return
     const yearlyOdometer = result.yearlyOdometer || 12;
     const haggle = result.haggle || 15;
@@ -113,7 +113,7 @@ async function getCarData(mode) {
     }
     let selectorConfigs = result.selectorConfigs
     // if (!selectorConfigs){
-    //     browser.notifications.create({
+    //     chrome.notifications.create({
     //         type: 'basic',
     //         iconUrl: 'icons/icon-128x128.png',
     //         title: 'No Website Presets',
@@ -125,7 +125,7 @@ async function getCarData(mode) {
 
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == mode);
     if (!thisSelector) {
-        browser.notifications.create({
+        chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icons/icon-128x128.png',
             title: 'Website + Mode combination not registered',
@@ -135,7 +135,7 @@ async function getCarData(mode) {
     } else
 
     if (cost == 0 || life == 0){
-        browser.notifications.create({
+        chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icons/icon-128x128.png',
             title: `Wrong Preset`,
@@ -144,14 +144,14 @@ async function getCarData(mode) {
         return
     } else
 
-    browser.notifications.create({
+    chrome.notifications.create({
         type: 'basic',
         iconUrl: 'icons/icon-128x128.png',
         title: `${name ? name : "Custom"}`,
         message: `Using ${mode} mode`
     });
 
-    var results = await browser.scripting.executeScript({
+    var results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: injectedFunction,
         args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider]
@@ -159,9 +159,9 @@ async function getCarData(mode) {
     console.log(results)
     if (results && results[0] && results[0].result) {
         if (mode === 'single'){
-            browser.storage.sync.set({ 'scrapedSingle': results[0].result });
+            chrome.storage.sync.set({ 'scrapedSingle': results[0].result });
             if (results[0].result.redFlags){
-                browser.notifications.create({
+                chrome.notifications.create({
                     type: 'basic',
                     iconUrl: 'icons/icon-128x128.png',
                     title: `Page contains red flag keyword`,
@@ -173,7 +173,7 @@ async function getCarData(mode) {
             const existingData = result.scrapedMultiple || [];
 
             if (existingData.length > 0) {
-                browser.notifications.create('confirm-override', {
+                chrome.notifications.create('confirm-override', {
                     type: 'basic',
                     iconUrl: 'icons/icon-128x128.png',
                     title: 'Existing Data Found',
@@ -185,12 +185,12 @@ async function getCarData(mode) {
                 });
 
                 // Store data temporarily to be used by the notification listener
-                await browser.storage.local.set({
+                await chrome.storage.local.set({
                     tempNewScrapedData: newScrapedData,
                     tempExistingData: existingData
                 });
             } else {
-                browser.storage.sync.set({ 'scrapedMultiple': newScrapedData });
+                chrome.storage.sync.set({ 'scrapedMultiple': newScrapedData });
             }
         }
     }
@@ -262,7 +262,7 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
                     `${old.toFixed(1)} y/o (${Math.round(old / life * 100)}% of life)`;
                 if (mode == "multiple") {
                     el.title = priceElement.title
-                    retVal.push({name: yearElement.textContent, link: el.querySelector("a").href ,age: old, price: price, yearsAgo: currentyear - year, odometer, res})
+                    retVal.push({name: yearElement.textContent, link: el.querySelector("a").href ,age: old, price: price, yearsAgo: currentyear - year, odometer: odometer * 1000, res})
                 }else retVal = { year, odometer, price }
                 el.diffNum = price - res
                 priceElement.append(tempEl);
@@ -366,9 +366,9 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
 }
 
 async function sortCars() {
-    var {selectorConfigs, blackList} = await browser.storage.sync.get(["selectorConfigs","blackList"])
+    var {selectorConfigs, blackList} = await chrome.storage.sync.get(["selectorConfigs","blackList"])
     if (!selectorConfigs) return
-    var tab = await browser.tabs.query({active: true, currentWindow: true})
+    var tab = await chrome.tabs.query({active: true, currentWindow: true})
     tab = tab[0]
     if (!tab) return
     if (!blackList) blackList = {}
@@ -377,7 +377,7 @@ async function sortCars() {
     let tabId = tab.id
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
-    let remCount = await browser.scripting.executeScript({target: { tabId:  tabId },func: (elSelector, blackList)=>{
+    let remCount = await chrome.scripting.executeScript({target: { tabId:  tabId },func: (elSelector, blackList)=>{
         if (!document.querySelector(".ext-diff")) return
         var remCount = 0
         console.time("blacklist")
@@ -402,7 +402,7 @@ async function sortCars() {
         return [remCount, blackList.length]
     }, args:[thisSelector.carSelector, blackList[domain]]})
     if (remCount[0].result[0] > 0) {
-        browser.notifications.create({
+        chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icons/icon-128x128.png',
             title: `Removed ${remCount.at(0).result[0]} blacklisted listings`,
@@ -412,27 +412,27 @@ async function sortCars() {
 }
 
 async function blackListLink(link, tab){
-    var {blackList, selectorConfigs} = await browser.storage.sync.get(["blackList","selectorConfigs"])
+    var {blackList, selectorConfigs} = await chrome.storage.sync.get(["blackList","selectorConfigs"])
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     let cleanLink = new URL(link).pathname
     if (!blackList) blackList = {}
     if (!blackList[domain]) blackList[domain] = []
     if (!blackList[domain].includes(cleanLink)) blackList[domain].push(cleanLink)
-    await browser.storage.sync.set({blackList: blackList})
+    await chrome.storage.sync.set({blackList: blackList})
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
-    await browser.scripting.executeScript({target: { tabId: tab.id},func: (thisSelector, link)=>{
+    await chrome.scripting.executeScript({target: { tabId: tab.id},func: (thisSelector, link)=>{
         document.querySelector(`${thisSelector}:has(a[href^="${link}"])`).remove()
     }, args:[thisSelector.carSelector, cleanLink]})
 }
 
 async function clearBlackList(tab) {
     // if (!confirm("Are you sure?")) return
-    var { blackList } = await browser.storage.sync.get("blackList")
+    var { blackList } = await chrome.storage.sync.get("blackList")
     if (!blackList) return
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     if (blackList[domain]) blackList[domain] = []
-    await browser.storage.sync.set({blackList})
+    await chrome.storage.sync.set({blackList})
 }

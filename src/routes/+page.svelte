@@ -50,7 +50,7 @@
 
     onMount(async () => {
         const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear'];
-        let result = await browser.storage.sync.get(keys)
+        let result = await chrome.storage.sync.get(keys)
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         else openOptionsPage()
         if (result.haggle) haggle = result.haggle;
@@ -75,7 +75,7 @@
             drawRegressionChart(result.scrapedMultiple)
         }
 
-            // browser.storage.sync.remove('scrapedSingle');
+            // chrome.storage.sync.remove('scrapedSingle');
         });
 
     function onCarChange() {
@@ -96,10 +96,10 @@
             if (matchingPreset.msrp > 0) {
                 cost = matchingPreset.msrp;
             }
-            browser.storage.sync.set({ selectedCarName: name, selectedCarCost: cost, selectedCarLife: life });
-            browser.storage.sync.remove('scrapedSingle');
+            chrome.storage.sync.set({ selectedCarName: name, selectedCarCost: cost, selectedCarLife: life });
+            chrome.storage.sync.remove('scrapedSingle');
         } else {
-            browser.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
+            chrome.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
         }
         drawDepreciationChart()
     }
@@ -303,14 +303,14 @@
 
     function clearSelectedCar(){
         name = ''
-        browser.storage.sync.remove('scrapedSingle');
-        browser.storage.sync.remove('scrapedMultiple');
-        browser.storage.sync.remove('selectedCarName')
+        chrome.storage.sync.remove('scrapedSingle');
+        chrome.storage.sync.remove('scrapedMultiple');
+        chrome.storage.sync.remove('selectedCarName')
         resetResult()
     }
 
     function openOptionsPage() {
-        browser.runtime.openOptionsPage();
+        chrome.runtime.openOptionsPage();
     }
 
     function kbb(trim: boolean){
@@ -369,8 +369,8 @@
                 </select>
             </label>
         </div>
-        <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>browser.storage.sync.set({"selectedCarCost":cost})} oncontextmenu={(e)=> {e.preventDefault(); cost = Math.round((cost * 1.05 + 1.5) * 10) / 10; name = ""}}></label></div>
-        <div><label><span>Expected Lifespan</span><input type="number" bind:value={life} oninput={clearSelectedCar} onchange={()=>browser.storage.sync.set({"selectedCarLife":life})}></label></div>
+        <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarCost":cost})} oncontextmenu={(e)=> {e.preventDefault(); cost = Math.round((cost * 1.05 + 1.5) * 10) / 10; name = ""}}></label></div>
+        <div><label><span>Expected Lifespan</span><input type="number" bind:value={life} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":life})}></label></div>
     </div>
     <div class="block">
         <!-- svelte-ignore a11y_autofocus -->
@@ -395,7 +395,7 @@
     {/if}
     <div class="mb-1">
         <button onclick={async ()=> {
-            let res = await browser.runtime.sendMessage("get-car-data-single")
+            let res = await chrome.runtime.sendMessage("get-car-data-single")
             if (res){
                 year = res.year - 2000
                 odometer = res.odometer
@@ -407,12 +407,12 @@
             year = null
             odometer = null
             // resetResult()
-            let res = await browser.runtime.sendMessage("get-car-data-multiple")
+            let res = await chrome.runtime.sendMessage("get-car-data-multiple")
             if (res){
                 drawRegressionChart(res)
             }
         }}>Multiple Cars</button>
-        <button onclick={()=>browser.runtime.sendMessage("sort-cars")}>Sort</button>
+        <button onclick={()=>chrome.runtime.sendMessage("sort-cars")}>Sort</button>
     </div>
     {#if !(year || odometer)}
         <div>

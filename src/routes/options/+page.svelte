@@ -34,7 +34,7 @@
 
     onMount(async () => {
         // Load saved settings when the component mounts
-        let result = await browser.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort', "blackList"])
+        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort', "blackList"])
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) typicalLife = result.typicalLife;
@@ -73,8 +73,8 @@
             blackList,
             selectorConfigs
         }
-        browser.storage.sync.set($state.snapshot(toSave))
-        // browser.runtime.sendMessage({action: "saveToStorage", data: $state.snapshot(toSave)});
+        chrome.storage.sync.set($state.snapshot(toSave))
+        // chrome.runtime.sendMessage({action: "saveToStorage", data: $state.snapshot(toSave)});
         statusText = 'Options saved.';
         setTimeout(() => { statusText = ''; }, 1500);
         console.log(toSave)
@@ -97,7 +97,7 @@
     }
 
     function downloadSettings() {
-        browser.storage.sync.get(['carPresets']).then((result) => {
+        chrome.storage.sync.get(['carPresets']).then((result) => {
             // if (result.carPresets) {
             //     carPresets = result.carPresets;
             // }
@@ -152,7 +152,7 @@
                         alwaysSort = settings.alwaysSort;
                         blackList = settings.blackList
                         console.log(cars)
-                        await browser.storage.sync.set({...settings, carPresets: cars});
+                        await chrome.storage.sync.set({...settings, carPresets: cars});
                         saveSettings()
                         // console.log(settings)
                         // console.log(cars)
