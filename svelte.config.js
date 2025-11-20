@@ -12,7 +12,8 @@ const config = {
 			fallback: null,
 			precompress: false,
 			manifest: 'manifest.json',
-		})
+		}),
+		appDir: 'app'
 	}
 };
 

@@ -27,7 +27,6 @@
         let toSave = {
             // Filter out any empty name rows before saving
             carPresets: carPresets.filter(p => p.name.trim() !== ''),
-            typicalLife,
         }
         browser.storage.sync.set($state.snapshot(toSave)).then(() => {
             statusText = 'Car presets saved.';

@@ -14,7 +14,13 @@ where life is assumed to be between 10 and 20 years, at 13.5k miles a year (can 
 
 ## Quick notes 
 
-Extension comes preloaded with some US websites, with the option to support more website using css selectors.You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. Suggested fair price is merely a mathematical approximation, with no consideration for market factors. Double-declining rate allowed mirroring common depreciation rates (after the usual 10% incentives are factored in): ~15% in the first year and ~55% in the first 5 years, in a car that lasts 15 years before being junked.
+Extension made with miles and american websites in mind, but kilometers and other websites might still work.
+
+Extension comes preloaded with some US websites, with the option to support more website using css selectors.You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. 
+
+Suggested fair price is merely a mathematical approximation, with no consideration for market factors. 
+
+Double-declining rate allowed mirroring common depreciation rates (after the usual 10% incentives are factored in): ~15% in the first year and ~55% in the first 5 years, in a car that lasts 15 years before being junked. 
 
 ## Explanation of price style
 
@@ -54,7 +60,7 @@ MSRP + non-negotiable fees (gorvernmental or dealer, like destination fees) - in
 Most cars can have >10% incentives, which is the main reason cars are said to lose 10% the moment they are driven off the lot (as new). Brands that do not offer such incentives (namely Toyota) don't have this "issue", which is part of the reason they hold their value more. Other brands have inflate MSRP then offer incentives. Electric cars are also said to lose a lot of their value even if that inflated price was usually not paid, since they offer(ed) significant incentives. Edmunds and KBB can be used as a reference for OTD price in the USA.
 
 ## Toyota Tangent
-Even if many toyotas regularly exceed 250k miles, this should not taken for granted. In the iseecars article below, most of their models reach 250k miles less than 20% of the time. Since they sell millions of cars, 20% of that is still millions, but many more won't reach that number. Some models and years had engine problems and needed recalls, like all manufacturers. They are the most reliable for sure, but not bullet-proof, and not barely broken in at 100k miles. Especially if you don't know how it was taken care of. Even if the drivetrain is alright, because the rest of the car might not, the car can be totaled regardless. It is fair to estimate the lifespan of their good models (not the GR86/BRZ, oil burning 2010 camry,...) to be 20 years, what I have found that many facebook marketplace judge corolla's depreciation as if they last 30+ years. That said, many others still follow the curve of 20 year lifespan. Tacomas are as good as bullet-proof though, according to the same article, but I hear the new ones have problems though.
+Even if many toyotas regularly exceed 250k miles, this should not taken for granted. In the iseecars article below, most of their models reach 250k miles less than 20% of the time. Since they sell millions of cars, 20% of that is still millions, but many more won't reach that number. Some models and years had engine problems and needed recalls, like all manufacturers. They are the most reliable for sure, but not bullet-proof, and not barely broken in at 100k miles. Especially if you don't know how it was taken care of. Even if the drivetrain is alright, because the rest of the car might not, the car can be totaled regardless. It is fair to estimate the lifespan of their good models (not the GR86/BRZ, oil burning 2010 camry,...) to be 20 years, what I have found that many facebook marketplace judge corolla's depreciation as if they last 30+ years. That said, many others still follow the curve of 20 year lifespan. Tacomas are as good as bullet-proof though, according to the same article. But I hear the new tundras have problems though.
 
 ## Depreciation Tangent
 If most cars are way above the depreciation curve, this could mean that the lifespan estimated is smaller than what the market agreed upon. The lifespan might have been too conservative (eg, 10 years for a corolla), or because they believe that these cars hold their value (age like wine). If a car has lots of miles and is regularly only slightly cheaper than new, maybe buying it new makes more sense. It will be in better shape, you will have warranty (and peace of mind), you will know its maintanence exactly, and will have better finance rates.
@@ -82,6 +88,10 @@ https://www.kbb.com/car-depreciation/
 # Disclaimer (might be superfluous)
 
 Since the extension reads the current tab to skim its data for both single and multiple, it is inherently risky to use on a browser where sensitive data is accesssed (eg, banking, sensitive work, ...). If you are already comfortable with ad-blockers and screen-readers, or use any major social network on the same browser, this disclaimer is meaningless. No data is sent back to any back-end related to me. I have used the minimum number of dependancies I can, and yet I can not vouch for them personally. I can only vouch for what I wrote.
+
+AI was used in writing this extension. All code was revised and tested (to the best of my ability).
+
+This is the first browser extension I wrote.
 
 # How to install:
 

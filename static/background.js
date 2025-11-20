@@ -57,9 +57,25 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     if (message === "get-car-data-single") {
         sendResponse(getCarData('single'))
     } else if (message === "get-car-data-multiple") {
-        getCarData('multiple');
+        sendResponse(getCarData('multiple'));
     } else if (message === "sort-cars") {
         sortCars()
+    }
+});
+
+browser.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+    if (notificationId === 'confirm-override') {
+        const { tempNewScrapedData, tempExistingData } = await browser.storage.local.get(['tempNewScrapedData', 'tempExistingData']);
+
+        let finalData;
+        if (buttonIndex === 0) { // Override
+            finalData = tempNewScrapedData;
+        } else { // Append
+            finalData = [...tempExistingData, ...tempNewScrapedData];
+        }
+
+        await browser.storage.sync.set({ 'scrapedMultiple': finalData });
+        await browser.storage.local.remove(['tempNewScrapedData', 'tempExistingData']);
     }
 });
 
@@ -69,9 +85,9 @@ async function getCarData(mode) {
     tab = tab[0]
     if (!tab) return
     let tabId = tab.id
-    browser.storage.local.remove("scrapedData")
-    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'scrapedData', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider'];
-    var result = await browser.storage.local.get(keys)
+    browser.storage.sync.remove("scrapedSingle")
+    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'scrapedSingle', 'scrapedMultiple', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider'];
+    var result = await browser.storage.sync.get(keys)
     if (!result) return
     const yearlyOdometer = result.yearlyOdometer || 12;
     const haggle = result.haggle || 15;
@@ -141,15 +157,41 @@ async function getCarData(mode) {
         args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider]
     })
     console.log(results)
-    if (mode === 'single' && results && results[0] && results[0].result) {
-        browser.storage.local.set({ 'scrapedData': results[0].result });
-        if (results[0].result.redFlags){
-            browser.notifications.create({
-                type: 'basic',
-                iconUrl: 'icons/icon-128x128.png',
-                title: `Page contains red flag keyword`,
-                message: `Check red text for ${(results[0].result.redFlags)}`
-            });
+    if (results && results[0] && results[0].result) {
+        if (mode === 'single'){
+            browser.storage.sync.set({ 'scrapedSingle': results[0].result });
+            if (results[0].result.redFlags){
+                browser.notifications.create({
+                    type: 'basic',
+                    iconUrl: 'icons/icon-128x128.png',
+                    title: `Page contains red flag keyword`,
+                    message: `Check red text for ${(results[0].result.redFlags)}`
+                });
+            }
+        } else {
+            const newScrapedData = results[0].result;
+            const existingData = result.scrapedMultiple || [];
+
+            if (existingData.length > 0) {
+                browser.notifications.create('confirm-override', {
+                    type: 'basic',
+                    iconUrl: 'icons/icon-128x128.png',
+                    title: 'Existing Data Found',
+                    message: 'Do you want to override the existing scraped car data?',
+                    buttons: [
+                        { title: 'Override' },
+                        { title: 'Append' }
+                    ]
+                });
+
+                // Store data temporarily to be used by the notification listener
+                await browser.storage.local.set({
+                    tempNewScrapedData: newScrapedData,
+                    tempExistingData: existingData
+                });
+            } else {
+                browser.storage.sync.set({ 'scrapedMultiple': newScrapedData });
+            }
         }
     }
     if (mode == "multiple" && alwaysSort) sortCars()
@@ -158,6 +200,7 @@ async function getCarData(mode) {
 
 async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider) {
     var retVal = {}
+    if (mode == "multiple") retVal = []
     if (thisSelector){
         const carElements = document.querySelectorAll(thisSelector.carSelector);
         console.time("Price")
@@ -217,10 +260,12 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
                 priceElement.title = `${price > res ? '+' : ''}${Math.round((price - res)/res*100)}% (${Math.round(price/cost*100)}% of new) \r\n` + 
                     `${String(res)} (${Math.round(costFrac*100)}% of new) \r\n` + 
                     `${old.toFixed(1)} y/o (${Math.round(old / life * 100)}% of life)`;
-                if (mode == "multiple") el.title = priceElement.title
+                if (mode == "multiple") {
+                    el.title = priceElement.title
+                    retVal.push({name: yearElement.textContent, link: el.querySelector("a").href ,age: old, price: price, yearsAgo: currentyear - year, odometer, res})
+                }else retVal = { year, odometer, price }
                 el.diffNum = price - res
                 priceElement.append(tempEl);
-                retVal = { year, odometer, price }
             } catch (error) {
                 console.error(error);
                 retVal = error
@@ -321,7 +366,7 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
 }
 
 async function sortCars() {
-    var {selectorConfigs, blackList} = await browser.storage.local.get(["selectorConfigs","blackList"])
+    var {selectorConfigs, blackList} = await browser.storage.sync.get(["selectorConfigs","blackList"])
     if (!selectorConfigs) return
     var tab = await browser.tabs.query({active: true, currentWindow: true})
     tab = tab[0]
@@ -367,14 +412,14 @@ async function sortCars() {
 }
 
 async function blackListLink(link, tab){
-    var {blackList, selectorConfigs} = await browser.storage.local.get(["blackList","selectorConfigs"])
+    var {blackList, selectorConfigs} = await browser.storage.sync.get(["blackList","selectorConfigs"])
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     let cleanLink = new URL(link).pathname
     if (!blackList) blackList = {}
     if (!blackList[domain]) blackList[domain] = []
     if (!blackList[domain].includes(cleanLink)) blackList[domain].push(cleanLink)
-    await browser.storage.local.set({blackList: blackList})
+    await browser.storage.sync.set({blackList: blackList})
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
     await browser.scripting.executeScript({target: { tabId: tab.id},func: (thisSelector, link)=>{
@@ -384,10 +429,10 @@ async function blackListLink(link, tab){
 
 async function clearBlackList(tab) {
     // if (!confirm("Are you sure?")) return
-    var { blackList } = await browser.storage.local.get("blackList")
+    var { blackList } = await browser.storage.sync.get("blackList")
     if (!blackList) return
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     if (blackList[domain]) blackList[domain] = []
-    await browser.storage.local.set({blackList})
+    await browser.storage.sync.set({blackList})
 }

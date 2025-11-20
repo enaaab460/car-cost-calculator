@@ -137,7 +137,7 @@
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = async (event) => {
                     try {
                         var { settings, cars } = JSON.parse(event.target?.result as string)
                         // ({ yearlyOdometer, haggle, typicalLife, currentyear, selectorConfigs } = settings); 
@@ -151,7 +151,8 @@
                         alwaysVinCheck = settings.alwaysVinCheck;
                         alwaysSort = settings.alwaysSort;
                         blackList = settings.blackList
-                        browser.storage.sync.set({settings, carPresets: cars});
+                        console.log(cars)
+                        await browser.storage.sync.set({...settings, carPresets: cars});
                         saveSettings()
                         // console.log(settings)
                         // console.log(cars)

@@ -9,6 +9,19 @@
         msrp: number;
         life: number;
     }
+
+    interface CarPoint {
+        age: number;
+        price: number;
+        name: string;
+        link: string;
+    }
+
+    interface Point {
+        x: number;
+        y: number
+    }
+
     let carPresets = $state<CarPreset[]>([]);
     let yearlyOdometer = $state(12)
     let haggle = $state(15)
@@ -28,14 +41,18 @@
     let beHaggle = $state(0)
     let AfHaggle = $state(0)
 
-    let myChart: Chart;
-    let chartCanvas = $state<HTMLCanvasElement>()
+    let depreciationChart: Chart | null = null;
+    let depreciationCanvas = $state<HTMLCanvasElement>()
+    let regressionChart: Chart | null = null;
+    let regressionCanvas = $state<HTMLCanvasElement>()
     let resultText = $state("")
+    let regressionDataUrl = $state<string | null>(null)
 
     onMount(async () => {
-        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedData', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear'];
+        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear'];
         let result = await browser.storage.sync.get(keys)
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
+        else openOptionsPage()
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) life = result.typicalLife;
         if (result.carPresets) carPresets = result.carPresets;
@@ -44,17 +61,21 @@
         if (result.selectedCarLife) life = result.selectedCarLife;
         if (result.currentyear) currentyear = result.currentyear;
 
-        if (result.scrapedData){
-            const scraped = result.scrapedData;
+        if (result.scrapedSingle){
+            const scraped = result.scrapedSingle;
             if (scraped.year) year = scraped.year - 2000;
             if (scraped.odometer) odometer = scraped.odometer;
             if (scraped.price) price = scraped.price;
             runCalculation()
         } else if (name){
-            drawChart()
+            drawDepreciationChart()
         }
 
-            // browser.storage.sync.remove('scrapedData');
+        if (result.scrapedMultiple){
+            drawRegressionChart(result.scrapedMultiple)
+        }
+
+            // browser.storage.sync.remove('scrapedSingle');
         });
 
     function onCarChange() {
@@ -76,11 +97,11 @@
                 cost = matchingPreset.msrp;
             }
             browser.storage.sync.set({ selectedCarName: name, selectedCarCost: cost, selectedCarLife: life });
-            browser.storage.sync.remove('scrapedData');
+            browser.storage.sync.remove('scrapedSingle');
         } else {
             browser.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
         }
-        drawChart()
+        drawDepreciationChart()
     }
 
     function runCalculation() {
@@ -107,14 +128,14 @@
         resultText = `${estimate} (${Math.round(res/1000/cost*100)}%) (${beHaggle} before haggling, ${AfHaggle} after)`
             + `<br> ${old.toFixed(1)} y/o (${(old/life*100).toFixed(0)}% of life)`
 
-        drawChart()
+        drawDepreciationChart()
     }
 
-    function drawChart(){
-        if (myChart) {
-            myChart.destroy();
+    function drawDepreciationChart(){
+        if (depreciationChart) {
+            depreciationChart.destroy();
         }
-        if (!chartCanvas) return
+        if (!depreciationCanvas) return
         let xAxis = Array.from({ length: life+1 }, (_, i) => i)
         let chartOptions: ChartConfiguration = {
             type:"line",
@@ -175,13 +196,115 @@
                 }
             )
         }
-        myChart = new Chart(chartCanvas, chartOptions)
-        chartCanvas.style.height = '30em'
+        depreciationChart = new Chart(depreciationCanvas, chartOptions)
+        depreciationCanvas.style.height = '30em'
+    }
+
+    function calculateRegressionLine(data: Point[]) {
+        const n = data.length;
+        let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+
+        data.forEach(point => {
+            sumX += point.x;
+            sumY += point.y;
+            sumXY += point.x * point.y;
+            sumX2 += point.x * point.x;
+        });
+
+        const meanX = sumX / n;
+        const meanY = sumY / n;
+
+        // Calculate Slope (m)
+        const numerator = (n * sumXY) - (sumX * sumY);
+        const denominator = (n * sumX2) - (sumX * sumX);
+        const m = numerator / denominator; // Slope (Central Gradient)
+
+        // Calculate Y-intercept (b)
+        const b = meanY - (m * meanX);
+
+        // Get the min and max X values to define the line's start and end points
+        const minX = Math.min(...data.map(p => p.x));
+        const maxX = Math.max(...data.map(p => p.x));
+
+        // Create the two points for the trendline dataset: (minX, y=mx+b) and (maxX, y=mx+b)
+        const trendlineData = [
+            { x: minX, y: m * minX + b },
+            { x: maxX, y: m * maxX + b }
+        ];
+
+        return { m, b, trendlineData };
+    }
+
+    function drawRegressionChart(data: CarPoint[]){
+        if (regressionChart) {
+            regressionChart.destroy();
+        }
+        if (!regressionCanvas) return
+
+        data = Array.from(new Map(data.map(item => [item.link, item])).values());
+        let scatterData = data.map((x: CarPoint) => ({ x: x.age, y: x.price }))
+
+        const csvHeader = "age,price,name,link\n";
+        const csvRows = data.map(d => 
+            [d.age, d.price, `"${d.name.replace(/"/g, '""')}"`, d.link].join(',')
+        ).join('\n');
+        const csvData = csvHeader + csvRows;
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        if (regressionDataUrl) {
+            URL.revokeObjectURL(regressionDataUrl);
+        }
+        regressionDataUrl = URL.createObjectURL(blob);
+        const regression = calculateRegressionLine(scatterData);
+        const { m, b, trendlineData } = regression;
+        
+        const config = {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Data Points',
+                        data: scatterData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        pointRadius: 3,
+                    },
+                    {
+                        label: `Regression Line (y = (${m.toFixed(2)} * age) + ${b.toFixed(2)})`,
+                        // label: `Regression Line`,
+                        data: trendlineData,
+                        type: 'line', 
+                        // fill: false,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 3,
+                        pointRadius: 0, 
+                    }
+                ]
+            },
+            options: {
+                // responsive: true,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Age (years)' },
+                        type: 'linear',
+                        position: 'bottom',
+                        max: life
+                    },
+                    y: {
+                        title: { display: true, text: 'Price' },
+                        type: 'linear',
+                        beginAtZero: true
+                    }
+                },
+                maintainAspectRatio: false
+            }
+        } as ChartConfiguration;
+        regressionChart = new Chart(regressionCanvas, config)
+        
     }
 
     function clearSelectedCar(){
         name = ''
-        browser.storage.sync.remove('scrapedData');
+        browser.storage.sync.remove('scrapedSingle');
+        browser.storage.sync.remove('scrapedMultiple');
         browser.storage.sync.remove('selectedCarName')
         resetResult()
     }
@@ -216,9 +339,17 @@
     
     function resetResult(){
         resultText = ""
-        if (chartCanvas) {
-            chartCanvas.style.height = '0'
-            if (myChart) myChart.destroy()
+        if (depreciationCanvas) {
+            depreciationCanvas.style.height = '0'
+            if (depreciationChart) depreciationChart.destroy()
+        }
+        if (regressionCanvas) {
+            regressionCanvas.style.height = '0'
+            if (regressionChart) regressionChart.destroy()
+        }
+        if (regressionDataUrl) {
+            URL.revokeObjectURL(regressionDataUrl);
+            regressionDataUrl = null;
         }
     }
 </script>
@@ -272,11 +403,14 @@
                 runCalculation()
             }
         }}>Single Car</button>
-        <button onclick={()=> {
+        <button onclick={async ()=> {
             year = null
             odometer = null
-            resetResult()
-            browser.runtime.sendMessage("get-car-data-multiple")
+            // resetResult()
+            let res = await browser.runtime.sendMessage("get-car-data-multiple")
+            if (res){
+                drawRegressionChart(res)
+            }
         }}>Multiple Cars</button>
         <button onclick={()=>browser.runtime.sendMessage("sort-cars")}>Sort</button>
     </div>
@@ -285,7 +419,11 @@
             <span>Please fill the fields to calculate or use the quick actions</span>
         </div>
     {/if}
-    <div><canvas bind:this={chartCanvas} style="height:0; width: 10em;" id="mc"></canvas></div>
+    <div><canvas bind:this={depreciationCanvas} style="height:0; width: 10em;"></canvas></div>
+    <div><canvas bind:this={regressionCanvas} style="height:0; width: 10em;"></canvas></div>
+    {#if regressionDataUrl && name}
+        <a href={regressionDataUrl} download={`${name}_data_${Math.floor(Date.now() / 1000)}.csv`}>Download Data</a>
+    {/if}
 </main>
 
 
