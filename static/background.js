@@ -63,22 +63,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     }
 });
 
-chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
-    if (notificationId === 'confirm-override') {
-        const { tempNewScrapedData, tempExistingData } = await chrome.storage.local.get(['tempNewScrapedData', 'tempExistingData']);
-
-        let finalData;
-        if (buttonIndex === 0) { // Override
-            finalData = tempNewScrapedData;
-        } else { // Append
-            finalData = [...tempExistingData, ...tempNewScrapedData];
-        }
-
-        await chrome.storage.sync.set({ 'scrapedMultiple': finalData });
-        await chrome.storage.local.remove(['tempNewScrapedData', 'tempExistingData']);
-    }
-});
-
 async function getCarData(mode) {
     // if (!tab.id) return;
     var tab = await chrome.tabs.query({active: true, currentWindow: true})
@@ -154,7 +138,7 @@ async function getCarData(mode) {
     var results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: injectedFunction,
-        args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider]
+        args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, result.scrapedMultiple]
     })
     console.log(results)
     if (results && results[0] && results[0].result) {
@@ -169,36 +153,14 @@ async function getCarData(mode) {
                 });
             }
         } else {
-            const newScrapedData = results[0].result;
-            const existingData = result.scrapedMultiple || [];
-
-            if (existingData.length > 0) {
-                chrome.notifications.create('confirm-override', {
-                    type: 'basic',
-                    iconUrl: 'icons/icon-128x128.png',
-                    title: 'Existing Data Found',
-                    message: 'Do you want to override the existing scraped car data?',
-                    buttons: [
-                        { title: 'Override' },
-                        { title: 'Append' }
-                    ]
-                });
-
-                // Store data temporarily to be used by the notification listener
-                await chrome.storage.local.set({
-                    tempNewScrapedData: newScrapedData,
-                    tempExistingData: existingData
-                });
-            } else {
-                chrome.storage.sync.set({ 'scrapedMultiple': newScrapedData });
-            }
+            chrome.storage.local.set({ 'scrapedMultipleNew': results[0].result });
         }
     }
     if (mode == "multiple" && alwaysSort) sortCars()
     return results[0].result
 }
 
-async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider) {
+async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, scrapedMultiple) {
     var retVal = {}
     if (mode == "multiple") retVal = []
     if (thisSelector){
@@ -262,7 +224,7 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
                     `${old.toFixed(1)} y/o (${Math.round(old / life * 100)}% of life)`;
                 if (mode == "multiple") {
                     el.title = priceElement.title
-                    retVal.push({name: yearElement.textContent, link: el.querySelector("a").href ,age: old, price: price, yearsAgo: currentyear - year, odometer: odometer * 1000, res})
+                    retVal.push({name: yearElement.textContent.trim(), link: el.querySelector("a").href ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer * 1000, res})
                 }else retVal = { year, odometer, price }
                 el.diffNum = price - res
                 priceElement.append(tempEl);
@@ -347,7 +309,7 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
                 grandParent.style.border = ""
             }
         }
-        let vin = document.querySelector('body').innerText.match(/\b[\w\d]{17}\b/)
+        let vin = document.querySelector(thisSelector.carSelector).innerText.match(/\b[\w\d]{17}\b/)
         if (vin){
             vin = vin[0]
             var check = document.getElementById("ext-checkTitle")
@@ -388,6 +350,7 @@ async function sortCars() {
                 remCount++
             }
         }
+        else blackList = []
         console.timeEnd("blacklist")
         console.time("sort")
         let toSort = Array.from(document.querySelectorAll(elSelector))

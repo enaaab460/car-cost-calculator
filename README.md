@@ -14,6 +14,8 @@ where life is assumed to be between 10 and 20 years, at 13.5k miles a year (can 
 
 ## Quick notes 
 
+For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank doesn't play nice with Google.
+
 Extension made with miles and american websites in mind, but kilometers and other websites might still work.
 
 Extension comes preloaded with some US websites, with the option to support more website using css selectors.You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. 
@@ -73,7 +75,7 @@ Exotic cars also don't typically follow the depreciation curve. They might not b
 
 ### Sources:
 
-\* Heard multiple times but can't find source now
+\* Heard multiple times on Youtube but can't find source now
 
 https://autorecyclingworld.com/what-is-the-lifespan-of-a-vehicle-in-the-usa/
 

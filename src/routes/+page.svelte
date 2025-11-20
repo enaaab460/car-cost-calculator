@@ -47,6 +47,7 @@
     let regressionCanvas = $state<HTMLCanvasElement>()
     let resultText = $state("")
     let regressionDataUrl = $state<string | null>(null)
+    let scrapedMultiple = $state<CarPoint[]>([])
 
     onMount(async () => {
         const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear'];
@@ -71,9 +72,16 @@
             drawDepreciationChart()
         }
 
-        if (result.scrapedMultiple){
+        result = await chrome.storage.local.get(['scrapedMultiple','scrapedMultipleNew'])
+        if (result.scrapedMultipleNew) {
+            drawRegressionChart(result.scrapedMultipleNew)
+            await chrome.storage.local.remove("scrapedMultiple")
+        } else if (result.scrapedMultiple){
+            year = null
+            odometer = null
+            scrapedMultiple = result.scrapedMultiple
             drawRegressionChart(result.scrapedMultiple)
-        }
+        } 
 
             // chrome.storage.sync.remove('scrapedSingle');
         });
@@ -85,9 +93,9 @@
             year = 0
             odometer = 0
             clearSelectedCar()
-            resetResult()
             return;
         }
+        resetResult()
         const lowerCaseName = name.toLowerCase();
         const matchingPreset = carPresets.find(p => p.name.toLowerCase() === lowerCaseName);
 
@@ -166,7 +174,11 @@
             options:{
                 scales:{
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                    },
+                    x: {
+                        type: "linear",
+                        max: life
                     }
                 },
                 plugins:{
@@ -191,8 +203,9 @@
                 {
                     type: 'scatter',
                     label: 'Car',
-                    data: [{x: Math.round(old), y: price}],
-                    backgroundColor: "black"
+                    data: [{x: old, y: price}],
+                    backgroundColor: "black",
+                    pointRadius: 5,
                 }
             )
         }
@@ -241,12 +254,11 @@
         }
         if (!regressionCanvas) return
 
-        data = Array.from(new Map(data.map(item => [item.link, item])).values());
         let scatterData = data.map((x: CarPoint) => ({ x: x.age, y: x.price }))
 
-        const csvHeader = "age,price,name,link\n";
+        const csvHeader =  [...Object.getOwnPropertyNames(data[0])].join(',') + '\n';
         const csvRows = data.map(d => 
-            [d.age, d.price, `"${d.name.replace(/"/g, '""')}"`, d.link].join(',')
+            [...Object.values(d)].join(',')
         ).join('\n');
         const csvData = csvHeader + csvRows;
         const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
@@ -257,23 +269,33 @@
         const regression = calculateRegressionLine(scatterData);
         const { m, b, trendlineData } = regression;
         
+        var optTrendline = [{x: 0, y: cost * 1000},{x: life, y: cost * 1000 * Math.pow(1 - 2/life, life)}]
+        let xAxis = Array.from({ length: life+1 }, (_, i) => i)
+        let correct = xAxis.map(x => ({x: x, y: cost * 1000 * Math.pow(1 - 2/life, x)}))
+        const { m: om, b: ob, trendlineData: otl } = calculateRegressionLine(correct)
         const config = {
             type: 'scatter',
             data: {
                 datasets: [
                     {
-                        label: 'Data Points',
+                        label: `Data Points (${scatterData.length})`,
                         data: scatterData,
-                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                        pointRadius: 3,
+                        backgroundColor: 'black',
+                        pointRadius: 2,
                     },
                     {
-                        label: `Regression Line (y = (${m.toFixed(2)} * age) + ${b.toFixed(2)})`,
-                        // label: `Regression Line`,
+                        label: `Regression Line (y = (${m.toFixed(0)} * age) + ${b.toFixed(0)})`,
                         data: trendlineData,
                         type: 'line', 
-                        // fill: false,
                         borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 3,
+                        pointRadius: 0, 
+                    },
+                    {
+                        label: `Fair Slope (y = (${om.toFixed(0)} * age) + ${ob.toFixed(0)})`,
+                        data: otl,
+                        type: 'line', 
+                        borderColor: 'cyan',
                         borderWidth: 3,
                         pointRadius: 0, 
                     }
@@ -298,13 +320,13 @@
             }
         } as ChartConfiguration;
         regressionChart = new Chart(regressionCanvas, config)
-        
+        regressionCanvas.style.height = '30em'
     }
 
     function clearSelectedCar(){
         name = ''
-        chrome.storage.sync.remove('scrapedSingle');
-        chrome.storage.sync.remove('scrapedMultiple');
+        chrome.storage.local.remove('scrapedSingle');
+        chrome.storage.local.remove('scrapedMultiple');
         chrome.storage.sync.remove('selectedCarName')
         resetResult()
     }
@@ -350,6 +372,28 @@
         if (regressionDataUrl) {
             URL.revokeObjectURL(regressionDataUrl);
             regressionDataUrl = null;
+        }
+    }
+
+    async function scrapeMultiple(append: boolean){
+        year = null
+        odometer = null
+        // resetResult()
+        let res:CarPoint[] = await chrome.runtime.sendMessage("get-car-data-multiple")
+        if (res){
+            if (append){
+                await chrome.storage.local.remove("scrapedMultipleNew")
+                // console.log("after scrap")
+                // console.log(scrapedMultiple)
+                // console.log(res)
+                res = $state.snapshot([...scrapedMultiple, ...res])
+                // scrapedMultiple = res
+            }
+
+            res = Array.from(new Map(res.map(item => [item.link, item])).values());
+            // console.log("outside append", res)
+            drawRegressionChart(res)
+            await chrome.storage.local.set({"scrapedMultiple": res})
         }
     }
 </script>
@@ -399,19 +443,13 @@
             if (res){
                 year = res.year - 2000
                 odometer = res.odometer
+                price = res.price
                 resetResult()
                 runCalculation()
             }
         }}>Single Car</button>
-        <button onclick={async ()=> {
-            year = null
-            odometer = null
-            // resetResult()
-            let res = await chrome.runtime.sendMessage("get-car-data-multiple")
-            if (res){
-                drawRegressionChart(res)
-            }
-        }}>Multiple Cars</button>
+        <button onclick={async () => await scrapeMultiple(false)}
+        oncontextmenu={async (e)=> {e.preventDefault(); await scrapeMultiple(true)}}>Multiple Cars</button>
         <button onclick={()=>chrome.runtime.sendMessage("sort-cars")}>Sort</button>
     </div>
     {#if !(year || odometer)}
