@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
   "name": "Car Cost Calculator",
-  "version": "1.0.1",
+  "version": "1.1.4",
   "description": "Calculates the effective cost of a used car and can read data from the current page.",
   "permissions": [
     "storage",

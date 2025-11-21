@@ -8,7 +8,7 @@ Price is calculated as $$\text{Price} = (1 - 2/\text{life})^\text{years} \cdot \
 
 where $$\text{years} = (\text{age of model} + (\text{odometer} / \text{yearlyOdometer})) / 2$$
 
-where the car is very commonly available (not exotic, 10k+ listings on visor.vin for example), and its price throughout the years matches inflation.
+where the car is in very good or excellent condition, is very commonly available (not exotic, 10k+ listings on visor.vin for example), and its price throughout the years matches inflation.
 
 where life is assumed to be between 10 and 20 years, at 13.5k miles a year (can be changed in the settings). Less reliable cars are closer to 10 years and more reliable are closer to 20 years. Life is not simply the expected lifespan of the drivetrain. A running car can be also be totaled if it needs expensive repairs (relative to the remaining value of the car) or if parts are no longer available. Rust rots and condition of interior and exterior degrades with time regardless of miles.
 
