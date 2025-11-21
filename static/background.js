@@ -55,9 +55,9 @@ chrome.commands.onCommand.addListener((command) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     if (message === "get-car-data-single") {
-        getCarData('single').then(res => sendResponse(res))
+        sendResponse(getCarData('single'))
     } else if (message === "get-car-data-multiple") {
-        getCarData('multiple').then(res => sendResponse(res))
+        sendResponse(getCarData('multiple'))
     } else if (message === "sort-cars") {
         sortCars()
     }
