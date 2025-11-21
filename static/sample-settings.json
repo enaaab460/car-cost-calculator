@@ -1,172 +1,172 @@
 {
-  "settings": {
-    "yearlyOdometer": 12,
-    "haggle": 15,
-    "typicalLife": 15,
-    "currentyear": 2026,
-    "redFlags": "salvage,rebuil,r title,rental,accident,owners,reconstruct,salvaje,branded,Title issue,down,sold",
-    "vinProvider": "https://www.nicb.org/vincheck?vin=%s",
-    "alwaysVinCheck": false,
-    "alwaysSort": true,
-    "selectorConfigs": [
-      {
-        "id": 1762706039230,
-        "domain": "autotempest.com",
-        "calculationMode": "single",
-        "yearSelector": "h1",
-        "odometerSelector": ".mileage",
-        "priceSelector": ".price",
-        "carSelector": "body"
-      },
-      {
-        "calculationMode": "multiple",
-        "carSelector": ".result-list-item",
-        "domain": "autotempest.com",
-        "id": 1761055526380,
-        "milesSelector": ".mileage",
-        "odometerSelector": ".mileage",
-        "priceSelector": ".label--price",
-        "yearSelector": ".title-wrap.listing-title"
-      },
-      {
-        "id": 1762710042063,
-        "domain": "autotrader.com",
-        "calculationMode": "multiple",
-        "yearSelector": ".condition + *",
-        "odometerSelector": ".specifications li:last-of-type",
-        "priceSelector": ".pricing-payments .first-price",
-        "carSelector": "div.col-xs-12.col-sm-6.col-md-4.display-flex"
-      },
-      {
-        "calculationMode": "single",
-        "carSelector": "body",
-        "domain": "cargurus.com",
-        "id": 1761541178204,
-        "odometerSelector": "li._listItem_t8qel_14:nth-of-type(1) > div:nth-of-type(2) > p.oqywn",
-        "priceSelector": "._price_1yep1_1 > .zL8e-.oqywn",
-        "yearSelector": "._listingHeading_s8u01_6._0ZnFt.oqywn"
-      },
-      {
-        "id": 1762370278474,
-        "domain": "cargurus.com",
-        "calculationMode": "multiple",
-        "yearSelector": "._truncate_174ge_12._title_174ge_1._2TITa.oqywn",
-        "odometerSelector": "._mileage_174ge_9.sCSIz.oqywn",
-        "priceSelector": "._priceText_tqyzu_103._7GZQ-.oqywn",
-        "carSelector": "div._tileFrame_1pmwr_8"
-      },
-      {
-        "id": 1762613609293,
-        "domain": "carmax.com",
-        "calculationMode": "multiple",
-        "yearSelector": ".make-model-info.scct--make-model-info",
-        "odometerSelector": ".scct--price-miles-info--miles",
-        "priceSelector": ".scct--price-miles-info--price",
-        "carSelector": ".listing-container.car-container > div"
-      },
-      {
-        "id": 1762246723552,
-        "domain": "cars.com",
-        "calculationMode": "single",
-        "yearSelector": ".primary-grid > .spark-heading-2",
-        "odometerSelector": ".sub-price-container > li:nth-of-type(1)",
-        "priceSelector": ".list-price",
-        "carSelector": "body"
-      },
-      {
-        "calculationMode": "multiple",
-        "carSelector": ".vehicle-card",
-        "domain": "cars.com",
-        "id": 1761290579853,
-        "milesSelector": ".mileage",
-        "odometerSelector": ".mileage",
-        "priceSelector": ".primary-price",
-        "yearSelector": "h2.title"
-      },
-      {
-        "calculationMode": "single",
-        "carSelector": "body",
-        "domain": "craigslist.org",
-        "id": 1761471391654,
-        "odometerSelector": ".auto_miles.attr > .valu",
-        "priceSelector": ".price",
-        "yearSelector": "#titletextonly"
-      },
-      {
-        "calculationMode": "multiple",
-        "carSelector": ".gallery-card",
-        "domain": "craigslist.org",
-        "id": 1761463009979,
-        "milesSelector": ".meta",
-        "odometerSelector": ".meta",
-        "priceSelector": ".priceinfo",
-        "yearSelector": ".label"
-      },
-      {
-        "id": 1762606509749,
-        "domain": "edmunds.com",
-        "calculationMode": "multiple",
-        "yearSelector": ".wrapping-vdp-link.clickable-card-link.usurp-inventory-card-vdp-link",
-        "odometerSelector": ".text-gray-darker.list-unstyled.mb-0.row .text-cool-gray-30",
-        "priceSelector": ".heading-3",
-        "carSelector": "li.col-md-6.col-12.mb-md-1_5.mb-0_75.d-flex"
-      },
-      {
-        "calculationMode": "single",
-        "carSelector": "body",
-        "domain": "facebook.com",
-        "id": 1761470621101,
-        "odometerSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:nth-of-type(1) > .xeuugli.xs83m0k.x1iyjqo2.x1r8uery.xamitd3.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-div > .xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
-        "priceSelector": ".xf7dkkf.x18d9i69.xv54qhq.xyamay9 > .x1xmf6yo > div",
-        "yearSelector": ".xeuugli.x193iq5w.x1a2a7pz.x1pd3egz.x1qlqyl8.x1heor9g.x1vvkbs.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-h1"
-      },
-      {
-        "calculationMode": "multiple",
-        "carSelector": ".x165d6jo.x4vbgl9.x1lxpwgx.x1rdy4ex.x1nhvcw1.x1a02dak.x1q0g3np.x78zum5.x8gbvx8 > div.x17dddeq.x1cjf5ee.xnpuxes.x18d9i69.xexx8yu.x11lfxj5.x135b78x.xs83m0k.x1iyjqo2.xdt5ytf.x1r8uery.x78zum5.x9f619",
-        "domain": "facebook.com",
-        "id": 1761282278614,
-        "milesSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
-        "odometerSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
-        "priceSelector": ".xzsf02u.x1s688f.x1lbecb7.x1jchvi3.x676frb.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
-        "yearSelector": ".xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1n2onr6.x10wlt62.x6ikm8r.x1lliihq"
-      },
-      {
-        "id": 1762704708550,
-        "domain": "truecar.com",
-        "calculationMode": "single",
-        "yearSelector": ".mb-4.z-10.leading-\\[1\\.2\\].grow.md\\:normal-case.heading-md-2.normal-case.heading-3_5",
-        "odometerSelector": ".text-muted.items-center.flex.shrink-0",
-        "priceSelector": ".mt-16.w-full.self-stretch.gap-x-24.flex-col.flex > div.w-full.justify-between.items-start.flex-row.flex > .gap-x-8.items-center.flex > .text-20",
-        "carSelector": "body"
-      },
-      {
-        "id": 1763297945044,
-        "domain": "truecar.com",
-        "calculationMode": "multiple",
-        "yearSelector": "[class=\"font-bold line-clamp-1\"]",
-        "odometerSelector": "[class=\"text-14 text-muted line-clamp-1\"]",
-        "priceSelector": "[class=\"text-24 font-bold\"]",
-        "carSelector": "[data-test=\"allVehicleListings\"] > ul > li:not([class*='empty:hidden'])"
-      },
-      {
-        "calculationMode": "single",
-        "carSelector": "[role=\"dialog\"]",
-        "domain": "visor.vin",
-        "id": 1761472511456,
-        "odometerSelector": ".dark\\:text-accent-foreground\\/80.text-\\[\\#797979\\].text-right",
-        "priceSelector": ".text-3xl.font-semibold",
-        "yearSelector": ".md\\:space-y-2\\.5.text-foreground.px-4.space-y-1 > .gap-x-2.items-center.flex-row.flex > .text-xl.font-semibold"
-      },
-      {
-        "calculationMode": "multiple",
-        "carSelector": "div.group.md\\:max-w-\\[400px\\].rounded-xl.max-w-full.relative",
-        "domain": "visor.vin",
-        "id": 1761296650946,
-        "milesSelector": ".gap-x-2.items-center.flex-row.flex > .dark\\:text-accent-foreground\\/90.text-sm.text-\\[\\#575757\\]",
-        "odometerSelector": ".gap-x-2.items-center.flex-row.flex > .dark\\:text-accent-foreground\\/90.text-sm.text-\\[\\#575757\\]",
-        "priceSelector": ".text-white.text-sm.font-bold.py-1.px-2.bg-\\[\\#232323\\]\\/90.rounded-md.left-2.bottom-2.absolute > .text-white",
-        "yearSelector": ".group-hover\\:underline.leading-5.text-base.font-semibold.truncate"
-      }
-    ]
-  }
+    "settings": {
+        "yearlyOdometer": 13.5,
+        "haggle": 15,
+        "typicalLife": 15,
+        "currentyear": 2026,
+        "redFlags": "salvage,rebuil,r title,rental,accident,owners,reconstruct,salvaje,branded,Title issue,down,sold",
+        "vinProvider": "https://www.nicb.org/vincheck?vin=%s",
+        "alwaysVinCheck": false,
+        "alwaysSort": true,
+        "selectorConfigs": [
+            {
+                "id": 1762706039230,
+                "domain": "autotempest.com",
+                "calculationMode": "single",
+                "yearSelector": "h1",
+                "odometerSelector": ".mileage",
+                "priceSelector": ".price",
+                "carSelector": "body"
+            },
+            {
+                "calculationMode": "multiple",
+                "carSelector": ".result-list-item",
+                "domain": "autotempest.com",
+                "id": 1761055526380,
+                "milesSelector": ".mileage",
+                "odometerSelector": ".mileage",
+                "priceSelector": ".label--price",
+                "yearSelector": ".title-wrap.listing-title"
+            },
+            {
+                "id": 1762710042063,
+                "domain": "autotrader.com",
+                "calculationMode": "multiple",
+                "yearSelector": ".condition + *",
+                "odometerSelector": ".specifications li:last-of-type",
+                "priceSelector": ".pricing-payments .first-price",
+                "carSelector": "div.col-xs-12.col-sm-6.col-md-4.display-flex"
+            },
+            {
+                "calculationMode": "single",
+                "carSelector": "body",
+                "domain": "cargurus.com",
+                "id": 1761541178204,
+                "odometerSelector": "li._listItem_t8qel_14:nth-of-type(1) > div:nth-of-type(2) > p.oqywn",
+                "priceSelector": "._price_1yep1_1 > .zL8e-.oqywn",
+                "yearSelector": "._listingHeading_s8u01_6._0ZnFt.oqywn"
+            },
+            {
+                "id": 1762370278474,
+                "domain": "cargurus.com",
+                "calculationMode": "multiple",
+                "yearSelector": "._truncate_174ge_12._title_174ge_1._2TITa.oqywn",
+                "odometerSelector": "._mileage_174ge_9.sCSIz.oqywn",
+                "priceSelector": "._priceText_tqyzu_103._7GZQ-.oqywn",
+                "carSelector": "div._tileFrame_1pmwr_8"
+            },
+            {
+                "id": 1762613609293,
+                "domain": "carmax.com",
+                "calculationMode": "multiple",
+                "yearSelector": ".make-model-info.scct--make-model-info",
+                "odometerSelector": ".scct--price-miles-info--miles",
+                "priceSelector": ".scct--price-miles-info--price",
+                "carSelector": ".listing-container.car-container > div"
+            },
+            {
+                "id": 1762246723552,
+                "domain": "cars.com",
+                "calculationMode": "single",
+                "yearSelector": ".primary-grid > .spark-heading-2",
+                "odometerSelector": ".sub-price-container > li:nth-of-type(1)",
+                "priceSelector": ".list-price",
+                "carSelector": "body"
+            },
+            {
+                "calculationMode": "multiple",
+                "carSelector": ".vehicle-card",
+                "domain": "cars.com",
+                "id": 1761290579853,
+                "milesSelector": ".mileage",
+                "odometerSelector": ".mileage",
+                "priceSelector": ".primary-price",
+                "yearSelector": "h2.title"
+            },
+            {
+                "calculationMode": "single",
+                "carSelector": "body",
+                "domain": "craigslist.org",
+                "id": 1761471391654,
+                "odometerSelector": ".auto_miles.attr > .valu",
+                "priceSelector": ".price",
+                "yearSelector": "#titletextonly"
+            },
+            {
+                "calculationMode": "multiple",
+                "carSelector": ".gallery-card",
+                "domain": "craigslist.org",
+                "id": 1761463009979,
+                "milesSelector": ".meta",
+                "odometerSelector": ".meta",
+                "priceSelector": ".priceinfo",
+                "yearSelector": ".label"
+            },
+            {
+                "id": 1762606509749,
+                "domain": "edmunds.com",
+                "calculationMode": "multiple",
+                "yearSelector": ".wrapping-vdp-link.clickable-card-link.usurp-inventory-card-vdp-link",
+                "odometerSelector": ".text-gray-darker.list-unstyled.mb-0.row .text-cool-gray-30",
+                "priceSelector": ".heading-3",
+                "carSelector": "li.col-md-6.col-12.mb-md-1_5.mb-0_75.d-flex"
+            },
+            {
+                "calculationMode": "single",
+                "carSelector": ".xtxwg39.xiylbte.x10wlt62.x6ikm8r.x1lytzrv.xdt5ytf.x78zum5.x1jx94hy",
+                "domain": "facebook.com",
+                "id": 1761470621101,
+                "odometerSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:nth-of-type(1) > .xeuugli.xs83m0k.x1iyjqo2.x1r8uery.xamitd3.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-div > .xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
+                "priceSelector": ".xf7dkkf.x18d9i69.xv54qhq.xyamay9 > .x1xmf6yo > div",
+                "yearSelector": ".xeuugli.x193iq5w.x1a2a7pz.x1pd3egz.x1qlqyl8.x1heor9g.x1vvkbs.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-h1"
+            },
+            {
+                "calculationMode": "multiple",
+                "carSelector": "[id^=\"mount_0_0_\"]:not([style=\"display:none\"]) div.x17dddeq.x1cjf5ee.xnpuxes.x18d9i69.xexx8yu.x11lfxj5.x135b78x.xs83m0k.x1iyjqo2.xdt5ytf.x1r8uery.x78zum5.x9f619",
+                "domain": "facebook.com",
+                "id": 1761282278614,
+                "milesSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
+                "odometerSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
+                "priceSelector": ".xzsf02u.x1s688f.x1lbecb7.x1jchvi3.x676frb.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
+                "yearSelector": ".xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1n2onr6.x10wlt62.x6ikm8r.x1lliihq"
+            },
+            {
+                "id": 1762704708550,
+                "domain": "truecar.com",
+                "calculationMode": "single",
+                "yearSelector": ".mb-4.z-10.leading-\\[1\\.2\\].grow.md\\:normal-case.heading-md-2.normal-case.heading-3_5",
+                "odometerSelector": ".text-muted.items-center.flex.shrink-0",
+                "priceSelector": ".mt-16.w-full.self-stretch.gap-x-24.flex-col.flex > div.w-full.justify-between.items-start.flex-row.flex > .gap-x-8.items-center.flex > .text-20",
+                "carSelector": "body"
+            },
+            {
+                "id": 1763297945044,
+                "domain": "truecar.com",
+                "calculationMode": "multiple",
+                "yearSelector": "[class=\"font-bold line-clamp-1\"]",
+                "odometerSelector": "[class=\"text-14 text-muted line-clamp-1\"]",
+                "priceSelector": "[class=\"text-24 font-bold\"]",
+                "carSelector": "[data-test=\"allVehicleListings\"] > ul > li:not([class*='empty:hidden'])"
+            },
+            {
+                "calculationMode": "single",
+                "carSelector": "[role=\"dialog\"]",
+                "domain": "visor.vin",
+                "id": 1761472511456,
+                "odometerSelector": ".dark\\:text-accent-foreground\\/80.text-\\[\\#797979\\].text-right",
+                "priceSelector": ".text-3xl.font-semibold",
+                "yearSelector": ".md\\:space-y-2\\.5.text-foreground.px-4.space-y-1 > .gap-x-2.items-center.flex-row.flex > .text-xl.font-semibold"
+            },
+            {
+                "calculationMode": "multiple",
+                "carSelector": "div.group.md\\:max-w-\\[400px\\].rounded-xl.max-w-full.relative",
+                "domain": "visor.vin",
+                "id": 1761296650946,
+                "milesSelector": ".gap-x-2.items-center.flex-row.flex > .dark\\:text-accent-foreground\\/90.text-sm.text-\\[\\#575757\\]",
+                "odometerSelector": ".gap-x-2.items-center.flex-row.flex > .dark\\:text-accent-foreground\\/90.text-sm.text-\\[\\#575757\\]",
+                "priceSelector": ".text-white.text-sm.font-bold.py-1.px-2.bg-\\[\\#232323\\]\\/90.rounded-md.left-2.bottom-2.absolute > .text-white",
+                "yearSelector": ".group-hover\\:underline.leading-5.text-base.font-semibold.truncate"
+            }
+        ]
+    }
 }

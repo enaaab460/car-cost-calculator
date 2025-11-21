@@ -12,15 +12,15 @@
     }
 
     // Default presets
-    let yearlyOdometer = $state(13.5);
-    let haggle = $state(15);
-    let typicalLife = $state(15);
+    let yearlyOdometer = $state(0);
+    let haggle = $state(0);
+    let typicalLife = $state(0);
 
     // Website-specific selector configurations
     let selectorConfigs = $state<SelectorConfig[]>([]);
 
     let statusText = $state('');
-    let redFlags = $state("salvage,rebuilt,r title,accident,crash,branded")
+    let redFlags = $state("")
     let blackList = $state({})
 
     let currentyear = $state(new Date().getFullYear())
@@ -30,7 +30,7 @@
 
     let alwaysSort = $state(false)
     let alwaysVinCheck = $state(false)
-    let vinProvider = $state("https://www.nicb.org/vincheck?vin=%s")
+    let vinProvider = $state("")
 
     onMount(async () => {
         // Load saved settings when the component mounts
@@ -43,6 +43,11 @@
             const response = await fetch('/sample-settings.json');
             const sampleSettings = await response.json();
             selectorConfigs = sampleSettings.settings.selectorConfigs;
+            redFlags = sampleSettings.settings.redFlags
+            vinProvider = sampleSettings.settings.vinProvider
+            yearlyOdometer = sampleSettings.settings.yearlyOdometer
+            haggle = sampleSettings.settings.haggle
+            typicalLife = sampleSettings.settings.typicalLife
             alert("First time loading, check settings and save!")
         }
         if (result.currentyear) currentyear = result.currentyear
