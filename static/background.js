@@ -55,9 +55,9 @@ chrome.commands.onCommand.addListener((command) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     if (message === "get-car-data-single") {
-        sendResponse(getCarData('single'))
+        getCarData('single').then(res => sendResponse(res))
     } else if (message === "get-car-data-multiple") {
-        sendResponse(getCarData('multiple'));
+        getCarData('multiple').then(res => sendResponse(res))
     } else if (message === "sort-cars") {
         sortCars()
     }
@@ -138,7 +138,7 @@ async function getCarData(mode) {
     var results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: injectedFunction,
-        args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, result.scrapedMultiple]
+        args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider]
     })
     console.log(results)
     if (results && results[0] && results[0].result) {
@@ -160,7 +160,7 @@ async function getCarData(mode) {
     return results[0].result
 }
 
-async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, scrapedMultiple) {
+async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider) {
     var retVal = {}
     if (mode == "multiple") retVal = []
     if (thisSelector){
@@ -332,10 +332,11 @@ async function sortCars() {
     if (!selectorConfigs) return
     var tab = await chrome.tabs.query({active: true, currentWindow: true})
     tab = tab[0]
-    if (!tab) return
-    if (!blackList) blackList = {}
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
+    if (!tab) return
+    if (!blackList) blackList = {}
+    if (!blackList[domain]) blackList[domain] = []
     let tabId = tab.id
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
@@ -350,7 +351,6 @@ async function sortCars() {
                 remCount++
             }
         }
-        else blackList = []
         console.timeEnd("blacklist")
         console.time("sort")
         let toSort = Array.from(document.querySelectorAll(elSelector))

@@ -42,7 +42,8 @@
         else {
             const response = await fetch('/sample-settings.json');
             const sampleSettings = await response.json();
-            selectorConfigs = sampleSettings.selectorConfigs;
+            selectorConfigs = sampleSettings.settings.selectorConfigs;
+            alert("First time loading, check settings and save!")
         }
         if (result.currentyear) currentyear = result.currentyear
         if (result.redFlags) redFlags = result.redFlags
@@ -184,7 +185,7 @@
         <label><span>VinCheck site (%s for VIN)</span><input bind:value={vinProvider}></label>
         <label><span>Always VinCheck Single?</span><input type="checkbox" bind:checked={alwaysVinCheck}></label>
         <label><span>Always sort Multiple?</span><input type="checkbox" bind:checked={alwaysSort}></label>
-        <button style="width: 10em;" onclick={() => blackList = {}}>Clear Blacklist</button>
+        <button style="width: 10em;" onclick={() => (confirm("Are you sure you want to clear blackList?")) ? blackList = {} : ''}>Clear Blacklist</button>
     </div>
 
     <hr />
