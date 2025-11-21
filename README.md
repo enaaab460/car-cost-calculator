@@ -97,11 +97,14 @@ This is the first browser extension I wrote.
 
 # How to install:
 
-## from firefox extensions marketplace:
+## from chrome extensions marketplace:
+For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank doesn't play nice with Google.
 
+## from release:
+extract the zip file, navigate to `chrome://extensions/` in chrome, load unpacked, select the unpacked folder
 
 ## from source:
-run `npm install` then `npm run build` in root directory, then temporarily load manifest.json from `build/firefox`
+run `npm install` then `npm run build` in root directory, then temporarily load manifest.json from `build/chrome`
 
 # Acknowledgements / Dependencies:
 
