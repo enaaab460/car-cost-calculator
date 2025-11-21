@@ -7,8 +7,8 @@ const config = {
 
 	kit: {
 		adapter: adapter({
-			pages: 'build/chrome',
-			assets: 'build/chrome',
+			pages: 'build/firefox',
+			assets: 'build/firefox',
 			fallback: null,
 			precompress: false,
 			manifest: 'manifest.json',
