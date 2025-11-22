@@ -194,6 +194,7 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
         carElements.forEach(el => {
             try {
                 el.querySelector(".ext-diff")?.remove();
+                el.diffNum = 9999999
                 const yearElement = el.querySelector(thisSelector.yearSelector);
                 if (!yearElement) {
                     console.error(`yearElement ${thisSelector.yearSelector} not found in ${el}`);
