@@ -186,7 +186,7 @@
         <label><span>Default Yearly Odometer (thou)</span><input type="number" bind:value={yearlyOdometer}></label>
         <label><span>Default Haggle Down %</span><input type="number" bind:value={haggle}></label>
         <label><span>Default Expected Lifespan</span><input type="number" bind:value={typicalLife}></label>
-        <label><span>Red Flags (comma-separated)</span><textarea bind:value={redFlags}></textarea></label>
+        <label><span style:margin="auto">Red Flags (comma-separated)</span><textarea bind:value={redFlags}></textarea></label>
         <label><span>VinCheck site (%s for VIN)</span><input bind:value={vinProvider}></label>
         <label><span>Always VinCheck Single?</span><input type="checkbox" bind:checked={alwaysVinCheck}></label>
         <label><span>Always sort Multiple?</span><input type="checkbox" bind:checked={alwaysSort}></label>
@@ -260,5 +260,12 @@
     #status {
         margin-top: 1em;
         color: green;
+    }
+    .preset-grid {
+        width: 60%;
+    }
+    .preset-grid > label {
+        display: flex;
+        justify-content: space-between;
     }
 </style>
