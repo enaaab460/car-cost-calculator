@@ -86,15 +86,24 @@
             // chrome.storage.sync.remove('scrapedSingle');
         });
 
+    function clearSelectedCar(){
+        name = ''
+        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple','scrapedMultipleNew']);
+        chrome.storage.sync.remove('selectedCarName')
+        resetResult()
+    }
+
     function onCarChange() {
+        life = 0
+        cost = 0
+        year = 0
+        price = 0
+        odometer = 0
         if (!name) {
-            life = 0
-            cost = 0
-            year = 0
-            odometer = 0
             clearSelectedCar()
             return;
         }
+        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple','scrapedMultipleNew']);
         resetResult()
         const lowerCaseName = name.toLowerCase();
         const matchingPreset = carPresets.find(p => p.name.toLowerCase() === lowerCaseName);
@@ -105,7 +114,6 @@
                 cost = matchingPreset.msrp;
             }
             chrome.storage.sync.set({ selectedCarName: name, selectedCarCost: cost, selectedCarLife: life });
-            chrome.storage.sync.remove('scrapedSingle');
         } else {
             chrome.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
         }
@@ -174,9 +182,11 @@
             options:{
                 scales:{
                     y: {
+                        title: { display: true, text: 'Price' },
                         beginAtZero: true,
                     },
                     x: {
+                        title: { display: true, text: 'Age (years)' },
                         type: "linear",
                         max: life
                     }
@@ -308,12 +318,13 @@
                         title: { display: true, text: 'Age (years)' },
                         type: 'linear',
                         position: 'bottom',
-                        max: life
+                        suggestedMax: life
                     },
                     y: {
                         title: { display: true, text: 'Price' },
                         type: 'linear',
-                        beginAtZero: true
+                        beginAtZero: true,
+                        min: 0
                     }
                 },
                 maintainAspectRatio: false
@@ -321,14 +332,6 @@
         } as ChartConfiguration;
         regressionChart = new Chart(regressionCanvas, config)
         regressionCanvas.style.height = '30em'
-    }
-
-    function clearSelectedCar(){
-        name = ''
-        chrome.storage.local.remove('scrapedSingle');
-        chrome.storage.local.remove('scrapedMultiple');
-        chrome.storage.sync.remove('selectedCarName')
-        resetResult()
     }
 
     function openOptionsPage() {
@@ -440,6 +443,7 @@
     <div class="mb-1">
         <button onclick={async ()=> {
             let res = await chrome.runtime.sendMessage("get-car-data-single")
+            console.log(res)
             if (res){
                 year = res.year - 2000
                 odometer = res.odometer

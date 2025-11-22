@@ -69,8 +69,7 @@ async function getCarData(mode) {
     tab = tab[0]
     if (!tab) return
     let tabId = tab.id
-    chrome.storage.sync.remove("scrapedSingle")
-    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'scrapedSingle', 'scrapedMultiple', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider'];
+    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider', 'blackList'];
     var result = await chrome.storage.sync.get(keys)
     if (!result) return
     const yearlyOdometer = result.yearlyOdometer || 12;
@@ -83,6 +82,11 @@ async function getCarData(mode) {
     let alwaysSort = result.alwaysSort;
     let alwaysVinCheck = result.alwaysVinCheck;
     let vinProvider = result.vinProvider;
+    let blackList = result.blackList
+    let tabURL = new URL(tab.url)
+    let domain = `${tabURL.hostname}${tabURL.pathname}`
+    if (!blackList) blackList = {}
+    if (!blackList[domain]) blackList[domain] = []
     if (!currentyear){
         currentyear = new Date().getFullYear();
         if (new Date().getMonth() + 1 > 8){
@@ -138,32 +142,52 @@ async function getCarData(mode) {
     var results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: injectedFunction,
-        args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider]
+        args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, blackList[domain]]
     })
     console.log(results)
-    if (results && results[0] && results[0].result) {
-        if (mode === 'single'){
-            chrome.storage.sync.set({ 'scrapedSingle': results[0].result });
-            if (results[0].result.redFlags){
-                chrome.notifications.create({
-                    type: 'basic',
-                    iconUrl: 'icons/icon-128x128.png',
-                    title: `Page contains red flag keyword`,
-                    message: `Check red text for ${(results[0].result.redFlags)}`
-                });
+    if (results && results[0]) {
+        if (results[0].result[0]) {
+            if (mode === 'single'){
+                chrome.storage.sync.set({ 'scrapedSingle': results[0].result[0] });
+                if (results[0].result[0].redFlags){
+                    chrome.notifications.create({
+                        type: 'basic',
+                        iconUrl: 'icons/icon-128x128.png',
+                        title: `Page contains red flag keyword`,
+                        message: `Check red text for ${(results[0].result[0].redFlags)}`
+                    });
+                }
+            } else {
+                chrome.storage.local.set({ 'scrapedMultipleNew': results[0].result[0] });
             }
-        } else {
-            chrome.storage.local.set({ 'scrapedMultipleNew': results[0].result });
+        }
+        if (results[0].result[1] > 0) {
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon-128x128.png',
+                title: `Removed ${results[0].result[1]} blacklisted listings`,
+                message: `Total ${blackList.length} blacklisted listings`
+            });
         }
     }
     if (mode == "multiple" && alwaysSort) sortCars()
-    return results[0].result
+    return results[0].result[0]
 }
 
-async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider) {
+async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, blackList){
     var retVal = {}
+    var remCount = 0
     if (mode == "multiple") retVal = []
     if (thisSelector){
+        console.time("blacklist")
+        for (let b of blackList){
+            let el = document.querySelector(`${thisSelector.carSelector}:has(a[href^="${b}"])`)
+            if (el) {
+                el.remove()
+                remCount++
+            }
+        }
+        console.timeEnd("blacklist")
         const carElements = document.querySelectorAll(thisSelector.carSelector);
         console.time("Price")
         carElements.forEach(el => {
@@ -196,9 +220,10 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
                 if (odometerElement) {
                     var odText = odometerElement.textContent.toLowerCase();
                     const odometerMatch = odText.replaceAll(',', '').match(/(\d+)(\.\d+)?k?( (mi|km))?/);
-                    if (!odometerMatch) return;
-                    odometer = parseInt(odometerMatch[1]);
-                    if (!odText.includes("k")) odometer = odometer / 1000;
+                    if (odometerMatch) {
+                        odometer = parseInt(odometerMatch[1]);
+                        if (!odText.includes("k")) odometer = odometer / 1000;
+                    }
                 }
                 var old = ((currentyear - year) + odometer / yearlyOdometer) / 2;
                 var costFrac = Math.pow(1 - 2 / life, old)
@@ -301,7 +326,7 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
                 myStats.append(danger)
             }
             alert(msg)
-            for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com/vehiclehistory/"]')){
+            for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
                 e.scrollIntoView({block: "center"})
                 let grandParent = e.parentElement.parentElement
                 grandParent.style.border = "solid red 2px"
@@ -324,34 +349,20 @@ async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdo
             if (alwaysVinCheck) check.click()
         }
     }
-    return retVal
+    return [retVal, remCount]
 }
 
 async function sortCars() {
-    var {selectorConfigs, blackList} = await chrome.storage.sync.get(["selectorConfigs","blackList"])
+    var {selectorConfigs} = await chrome.storage.sync.get("selectorConfigs")
     if (!selectorConfigs) return
     var tab = await chrome.tabs.query({active: true, currentWindow: true})
     tab = tab[0]
-    let tabURL = new URL(tab.url)
-    let domain = `${tabURL.hostname}${tabURL.pathname}`
     if (!tab) return
-    if (!blackList) blackList = {}
-    if (!blackList[domain]) blackList[domain] = []
     let tabId = tab.id
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
-    let remCount = await chrome.scripting.executeScript({target: { tabId:  tabId },func: (elSelector, blackList)=>{
+    let remCount = await chrome.scripting.executeScript({target: { tabId:  tabId },func: (elSelector)=>{
         if (!document.querySelector(".ext-diff")) return
-        var remCount = 0
-        console.time("blacklist")
-        if (blackList) for (let b of blackList){
-            let el = document.querySelector(`${elSelector}:has(a[href^="${b}"])`)
-            if (el) {
-                el.remove()
-                remCount++
-            }
-        }
-        console.timeEnd("blacklist")
         console.time("sort")
         let toSort = Array.from(document.querySelectorAll(elSelector))
         toSort = toSort.sort((a, b) => a.diffNum > b.diffNum ? -1 : 1)
@@ -363,15 +374,7 @@ async function sortCars() {
         console.timeEnd("sort")
         parentEl.children[0].scrollIntoView()
         return [remCount, blackList.length]
-    }, args:[thisSelector.carSelector, blackList[domain]]})
-    if (remCount[0].result[0] > 0) {
-        chrome.notifications.create({
-            type: 'basic',
-            iconUrl: 'icons/icon-128x128.png',
-            title: `Removed ${remCount.at(0).result[0]} blacklisted listings`,
-            message: `Total ${remCount.at(0).result[1]} blacklisted listings`
-        });
-    }
+    }, args:[thisSelector.carSelector]})
 }
 
 async function blackListLink(link, tab){
