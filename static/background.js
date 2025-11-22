@@ -61,6 +61,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     } else if (message === "sort-cars") {
         sortCars()
     }
+    return true;
 });
 
 async function getCarData(mode) {
