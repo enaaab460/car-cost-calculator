@@ -96,9 +96,9 @@
     function onCarChange() {
         life = 0
         cost = 0
-        year = 0
         price = 0
-        odometer = 0
+        year = null
+        odometer = null
         if (!name) {
             clearSelectedCar()
             return;
