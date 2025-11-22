@@ -97,14 +97,14 @@ This is the first browser extension I wrote.
 
 # How to install:
 
-## from chrome extensions marketplace:
-For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank doesn't play nice with Google.
+## from firefox extensions marketplace:
+https://addons.mozilla.org/en-US/firefox/addon/car-cost-calculator/
 
 ## from release:
-extract the zip file, navigate to `chrome://extensions/` in chrome, load unpacked, select the unpacked folder
+extract the zip file, navigate to `about:debugging#/runtime/this-firefox` in firefox, temporarily load addon, select `manifest.json`
 
 ## from source:
-run `npm install` then `npm run build` in root directory, then temporarily load manifest.json from `build/chrome`
+run `npm install` then `npm run build` in root directory, then navigate to `about:debugging#/runtime/this-firefox` in firefox, temporarily load addon, select `manifest.json` from `build/firefox`
 
 # Acknowledgements / Dependencies:
 
