@@ -9,11 +9,9 @@ const config = {
 		adapter: adapter({
 			pages: 'build/firefox',
 			assets: 'build/firefox',
-			fallback: null,
-			precompress: false,
 			manifest: 'manifest.json',
 		}),
-		appDir: 'app'
+		appDir: 'app',
 	}
 };
 

@@ -403,7 +403,7 @@
 <main>
     <div class="header">
         <button onclick={()=>window.open("/cars.html", "_blank")} title="Car Presets">🚗</button>
-        <button onclick={openOptionsPage} title="Settings">⚙️</button>
+        <button onclick={()=>window.open("/options.html", "_blank")} title="Settings">⚙️</button>
     </div>
     <div class="block">
         <div>
