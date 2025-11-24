@@ -42,7 +42,7 @@
         else {
             const response = await fetch('/sample-settings.json');
             const sampleSettings = await response.json();
-            selectorConfigs = sampleSettings.settings.selectorConfigs;
+            selectorConfigs = sampleSettings.selectorConfigs;
             redFlags = sampleSettings.settings.redFlags
             vinProvider = sampleSettings.settings.vinProvider
             yearlyOdometer = sampleSettings.settings.yearlyOdometer

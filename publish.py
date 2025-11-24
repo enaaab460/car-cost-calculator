@@ -37,8 +37,8 @@ print("Running npm build...")
 subprocess.run("npm run build", shell=True, check=True)
 
 print("Creating deployment archive...")
-archive_name = "build/firefox.zip"
-build_folder = "build/firefox/"
+archive_name = "build/android.zip"
+build_folder = "build/android/"
 
 if Path(archive_name).exists():
     os.remove(archive_name)

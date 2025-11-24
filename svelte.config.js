@@ -7,8 +7,8 @@ const config = {
 
 	kit: {
 		adapter: adapter({
-			pages: 'build/firefox',
-			assets: 'build/firefox',
+			pages: 'build/android',
+			assets: 'build/android',
 			manifest: 'manifest.json',
 		}),
 		appDir: 'app',
