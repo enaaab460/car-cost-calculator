@@ -27,8 +27,8 @@ except FileNotFoundError:
     exit()
 
 sampleJson: dict = json.load(samplePath.open())
-sampleJson["settings"].pop("blackList")
-sampleJson.pop("cars")
+sampleJson.pop("blackList")
+sampleJson.pop("carPresets")
 with open("static/sample-settings.json","w") as f:
     json.dump(sampleJson,f,indent=4)
 print(f"Successfully created sample-settings.json")

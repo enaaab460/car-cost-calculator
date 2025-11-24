@@ -10,7 +10,7 @@ where $$\text{years} = (\text{age of model} + (\text{odometer} / \text{yearlyOdo
 
 where the car is in very good or excellent condition, is very commonly available (not exotic, 10k+ listings on visor.vin for example), and its price throughout the years matches inflation.
 
-where life is assumed to be between 10 and 20 years, at 13.5k miles a year (can be changed in the settings). Less reliable cars are closer to 10 years and more reliable are closer to 20 years. Life is not simply the expected lifespan of the drivetrain. A running car can be also be totaled if it needs expensive repairs (relative to the remaining value of the car) or if parts are no longer available. Rust rots and condition of interior and exterior degrades with time regardless of miles.
+where life is assumed to be between 10 and 20 years, at 13.5k miles a year (can be changed in the settings). Research should be done about the reliability of the brand, model, specific years, and the maintenance of the specific car. Sources at the end of the page might be a good starting point. Less reliable cars are closer to 10 years and more reliable are closer to 20 years, assuming excellent condition and maintenance. Life is not simply the expected lifespan of the drivetrain. A running car can be also be totaled if it needs expensive repairs (relative to the remaining value of the car) or if parts are no longer available. Rust rots and condition of interior and exterior degrades with time regardless of miles.
 
 ## Quick notes 
 
@@ -64,10 +64,10 @@ MSRP + non-negotiable fees (gorvernmental or dealer, like destination fees) - in
 Most cars can have >10% incentives, which is the main reason cars are said to lose 10% the moment they are driven off the lot (as new). Brands that do not offer such incentives (namely Toyota) don't have this "issue", which is part of the reason they hold their value more. Other brands have inflate MSRP then offer incentives. Electric cars are also said to lose a lot of their value even if that inflated price was usually not paid, since they offer(ed) significant incentives. Edmunds and KBB can be used as a reference for OTD price in the USA.
 
 ## Toyota Tangent
-Even if many toyotas regularly exceed 250k miles, this should not taken for granted. In the iseecars article below, most of their models reach 250k miles less than 20% of the time. Since they sell millions of cars, 20% of that is still millions, but many more won't reach that number. Some models and years had engine problems and needed recalls, like all manufacturers. They are the most reliable for sure, but not bullet-proof, and not barely broken in at 100k miles. Especially if you don't know how it was taken care of. Even if the drivetrain is alright, because the rest of the car might not, the car can be totaled regardless. It is fair to estimate the lifespan of their good models (not the GR86/BRZ, oil burning 2010 camry,...) to be 20 years, what I have found that many facebook marketplace judge corolla's depreciation as if they last 30+ years. That said, many others still follow the curve of 20 year lifespan. Tacomas are as good as bullet-proof though, according to the same article. But I hear the new tundras have problems though.
+Even if many toyotas regularly exceed 250k miles, this should not taken for granted. In the iseecars article below, most of their models reach 250k miles less than 20% of the time. Since they sell millions of cars, 20% of that is still millions, but many more won't reach that number. Some models and years had engine problems and needed recalls, like all manufacturers. They are the most reliable for sure, but not bullet-proof, and not barely broken in at 100k miles. Especially if you don't know how it was taken care of. Even if the drivetrain is alright, because the rest of the car might not, the car can be totaled regardless. It is fair to estimate the lifespan of their good models (not the GR86/BRZ, oil burning 2010 camry,...) to be 20 years, what I have found that many facebook marketplace judge corolla's depreciation as if they last 30+ years. That said, many others still follow the curve of 20 year lifespan. ~40% of tacomas exceed 250k miles, according to the same article. But I hear the new tundras have problems though.
 
 ## Depreciation Tangent
-If most cars are way above the depreciation curve, this could mean that the lifespan estimated is smaller than what the market agreed upon. The lifespan might have been too conservative (eg, 10 years for a corolla), or because they believe that these cars hold their value (age like wine). If a car has lots of miles and is regularly only slightly cheaper than new, maybe buying it new makes more sense. It will be in better shape, you will have warranty (and peace of mind), you will know its maintanence exactly, and will have better finance rates.
+If most cars are way above the depreciation curve, this could mean that the lifespan estimated is smaller than what the market agreed upon. The lifespan you chose might have been too conservative (eg, 10 years for a corolla), or because they believe that these cars hold their value (limited-production cars tend to hold their value, or even appreciate). If a car has lots of miles and is regularly only slightly cheaper than new, maybe buying it new makes more sense. It will be in better shape, you will have warranty (and peace of mind), you will know its maintanence exactly, and will have better finance and insurance rates.
 
 Covid cars were sold over MSRP, and were in short supply, that they inherently costed more. So they are expected to be overpriced. But they make little sense now that the market is correcting and they cost close to new.
 
@@ -91,13 +91,15 @@ https://www.kbb.com/car-depreciation/
 
 https://carconfections.com/reliability-resale-value/
 
+https://www.youtube.com/@TheCarCareNutReviews
+
 # Disclaimer (might be superfluous)
 
 Since the extension reads the current tab to skim its data for both single and multiple, it is inherently risky to use on a browser where sensitive data is accesssed (eg, banking, sensitive work, ...). If you are already comfortable with ad-blockers and screen-readers, or use any major social network on the same browser, this disclaimer is meaningless. No data is sent back to any back-end related to me. I have used the minimum number of dependancies I can, and yet I can not vouch for them personally. I can only vouch for what I wrote.
 
 AI assisted in writing this extension. All code was revised and tested (to the best of my ability).
 
-This is the first browser extension I wrote.
+This is the first browser extension I wrote. I have some experience in Svelte and JS, and have programmed for many years. But it is not my day job, so not all best practices were followed.
 
 # How to install:
 

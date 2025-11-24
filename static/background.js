@@ -58,13 +58,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
         sendResponse(getCarData('single'))
     } else if (message === "get-car-data-multiple") {
         sendResponse(getCarData('multiple'))
+    } else if (message === "get-car-data-multiple-append") {
+        sendResponse(getCarData('multiple',true))
     } else if (message === "sort-cars") {
         sortCars()
     }
     return true;
 });
 
-async function getCarData(mode) {
+async function getCarData(mode, append) {
     // if (!tab.id) return;
     var tab = await chrome.tabs.query({active: true, currentWindow: true})
     tab = tab[0]
@@ -83,7 +85,7 @@ async function getCarData(mode) {
     let alwaysSort = result.alwaysSort;
     let alwaysVinCheck = result.alwaysVinCheck;
     let vinProvider = result.vinProvider;
-    let blackList = result.blackList
+    let {blackList} = await chrome.storage.sync.get('blackList')
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     if (!blackList) blackList = {}
@@ -146,20 +148,29 @@ async function getCarData(mode) {
         args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, blackList[domain]]
     })
     console.log(results)
+    var res
     if (results && results[0]) {
-        if (results[0].result[0]) {
+        res = results[0].result[0]
+        if (res) {
             if (mode === 'single'){
-                chrome.storage.sync.set({ 'scrapedSingle': results[0].result[0] });
-                if (results[0].result[0].redFlags){
+                chrome.storage.sync.set({ 'scrapedSingle': res });
+                if (res.redFlags){
                     chrome.notifications.create({
                         type: 'basic',
                         iconUrl: 'icons/icon-128x128.png',
                         title: `Page contains red flag keyword`,
-                        message: `Check red text for ${(results[0].result[0].redFlags)}`
+                        message: `Check red text for ${(res.redFlags)}`
                     });
                 }
             } else {
-                chrome.storage.local.set({ 'scrapedMultipleNew': results[0].result[0] });
+                if (append) {
+                    let { scrapedMultiple } = await chrome.storage.local.get("scrapedMultiple")
+                    if (scrapedMultiple) {
+                        res.push(...scrapedMultiple)
+                        res = Array.from(new Map(res.map(item => [item.link, item])).values())
+                    }
+                }
+                await chrome.storage.local.set({ 'scrapedMultiple': res })
             }
         }
         if (results[0].result[1] > 0) {
@@ -172,7 +183,7 @@ async function getCarData(mode) {
         }
     }
     if (mode == "multiple" && alwaysSort) sortCars()
-    return results[0].result[0]
+    return res
 }
 
 async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, blackList){
@@ -363,7 +374,7 @@ async function sortCars() {
     let tabId = tab.id
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
-    let remCount = await chrome.scripting.executeScript({target: { tabId:  tabId },func: (elSelector)=>{
+    await chrome.scripting.executeScript({target: { tabId:  tabId },func: (elSelector)=>{
         if (!document.querySelector(".ext-diff")) return
         console.time("sort")
         let toSort = Array.from(document.querySelectorAll(elSelector))
@@ -375,12 +386,12 @@ async function sortCars() {
         }
         console.timeEnd("sort")
         parentEl.children[0].scrollIntoView()
-        return [remCount, blackList.length]
     }, args:[thisSelector.carSelector]})
 }
 
 async function blackListLink(link, tab){
-    var {blackList, selectorConfigs} = await chrome.storage.sync.get(["blackList","selectorConfigs"])
+    var {selectorConfigs} = await chrome.storage.sync.get(["selectorConfigs"])
+    var {blackList} = await chrome.storage.local.get(["blackList"])
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     let cleanLink = new URL(link).pathname
@@ -397,10 +408,10 @@ async function blackListLink(link, tab){
 
 async function clearBlackList(tab) {
     // if (!confirm("Are you sure?")) return
-    var { blackList } = await chrome.storage.sync.get("blackList")
+    var { blackList } = await chrome.storage.local.get("blackList")
     if (!blackList) return
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     if (blackList[domain]) blackList[domain] = []
-    await chrome.storage.sync.set({blackList})
+    await chrome.storage.local.set({blackList})
 }

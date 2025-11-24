@@ -34,7 +34,7 @@
 
     onMount(async () => {
         // Load saved settings when the component mounts
-        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort', "blackList"])
+        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort'])
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) typicalLife = result.typicalLife;
@@ -42,7 +42,7 @@
         else {
             const response = await fetch('/sample-settings.json');
             const sampleSettings = await response.json();
-            selectorConfigs = sampleSettings.settings.selectorConfigs;
+            selectorConfigs = sampleSettings.selectorConfigs;
             redFlags = sampleSettings.settings.redFlags
             vinProvider = sampleSettings.settings.vinProvider
             yearlyOdometer = sampleSettings.settings.yearlyOdometer
@@ -55,6 +55,7 @@
         if (result.vinProvider) vinProvider = result.vinProvider
         if (result.alwaysVinCheck) alwaysVinCheck = result.alwaysVinCheck
         if (result.alwaysSort) alwaysSort = result.alwaysSort
+        result = await chrome.storage.local.get('blackList')
         if (result.blackList) blackList = result.blackList
     });
 
@@ -76,10 +77,10 @@
             vinProvider,
             alwaysVinCheck,
             alwaysSort,
-            blackList,
             selectorConfigs
         }
         chrome.storage.sync.set($state.snapshot(toSave))
+        chrome.storage.local.set($state.snapshot({blackList}))
         // chrome.runtime.sendMessage({action: "saveToStorage", data: $state.snapshot(toSave)});
         statusText = 'Options saved.';
         setTimeout(() => { statusText = ''; }, 1500);
@@ -102,37 +103,34 @@
         selectorConfigs = selectorConfigs.filter(c => c.id !== id);
     }
 
-    function downloadSettings() {
-        chrome.storage.sync.get(['carPresets']).then((result) => {
-            // if (result.carPresets) {
-            //     carPresets = result.carPresets;
-            // }
-            // if (result.life) life = result.life;
-            const settings = {
-                yearlyOdometer,
-                haggle,
-                typicalLife,
-                currentyear,
-                redFlags,
-                vinProvider,
-                alwaysVinCheck,
-                alwaysSort,
-                blackList,
-                selectorConfigs: selectorConfigs.filter(c => c.domain.trim() !== '')
-            };
-            let all = {
-                cars:result.carPresets,
-                settings
-            }
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(all, null, 2));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href",     dataStr);
-            downloadAnchorNode.setAttribute("download", `car-calculator-settings-${new Date().getTime()}.json`);
-            document.body.appendChild(downloadAnchorNode); // required for firefox
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-            statusText = 'Settings and cars saved successfully.';
-        })
+    async function downloadSettings() {
+        let {carPresets} = await chrome.storage.sync.get('carPresets')
+        var settings: any = {
+            yearlyOdometer,
+            haggle,
+            typicalLife,
+            currentyear,
+            redFlags,
+            vinProvider,
+            alwaysVinCheck,
+            alwaysSort
+        }
+        var all: any = {
+            settings,
+            selectorConfigs: selectorConfigs.filter(c => c.domain.trim() !== ''),
+            blackList
+        }
+        if (carPresets){
+            all.carPresets = carPresets
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(all, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     dataStr);
+        downloadAnchorNode.setAttribute("download", `car-calculator-settings-${new Date().getTime()}.json`);
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        statusText = 'Settings and cars saved successfully.';
     }
 
     function restoredSettings(){
@@ -145,20 +143,24 @@
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     try {
-                        var { settings, cars } = JSON.parse(event.target?.result as string)
+                        var result = JSON.parse(event.target?.result as string)
                         // ({ yearlyOdometer, haggle, typicalLife, currentyear, selectorConfigs } = settings); 
-                        yearlyOdometer = settings.yearlyOdometer;
-                        haggle = settings.haggle;
-                        typicalLife = settings.typicalLife;
-                        currentyear = settings.currentyear;
-                        selectorConfigs = settings.selectorConfigs;
-                        redFlags = settings.redFlags;
-                        vinProvider = settings.vinProvider;
-                        alwaysVinCheck = settings.alwaysVinCheck;
-                        alwaysSort = settings.alwaysSort;
-                        blackList = settings.blackList
-                        console.log(cars)
-                        await chrome.storage.sync.set({...settings, carPresets: cars});
+                        let settings = result.settings
+                        if (settings){
+                            yearlyOdometer = settings.yearlyOdometer;
+                            haggle = settings.haggle;
+                            typicalLife = settings.typicalLife;
+                            currentyear = settings.currentyear;
+                            redFlags = settings.redFlags;
+                            vinProvider = settings.vinProvider;
+                            alwaysVinCheck = settings.alwaysVinCheck;
+                            alwaysSort = settings.alwaysSort;
+                        }
+                        let selectorConfigs = result.selectorConfigs
+                        let carPresets = result.carPresets
+                        blackList = result.blackList
+                        await chrome.storage.sync.set($state.snapshot({...settings, selectorConfigs, carPresets}));
+                        await chrome.storage.local.set($state.snapshot({blackList}));
                         saveSettings()
                         // console.log(settings)
                         // console.log(cars)
