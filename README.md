@@ -47,7 +47,7 @@ red = haggling (15% by default) won't reach below the fair price
 
 15% default haggle is almost too much, but it increases the range of cyan and purple. It can be changed in the settings. Not reaching the fair price does not necessarily mean a bad deal. It is all relative to your car market. KBB can be used to verify the fair price for a particular model, trim, year, and mileage, but many think that KBB prices are too optimistic (at the time of writing this). 
 
-Hovering over the price in either mode will show a brief summary of the car discount, fair price, and calculated age
+Hovering over the price is not practical in android phones, so I have no idea how to test it, I don't have an S-pen.
 
 ## Single Mode (Alt-Q)
 Allows plotting where the car stands relative to the depreciation curve, and price styles. If the css selectors of the website are registered, it will automatically parse it for the year, miles and price. It can be still be used standalone without registering the website. If the name of the car is the same as KBB, then using the KBB button will allow quick access to kbb price estimator. If the trim is also the same, the '+trim' will provide 1-click shortcut. Edmunds support is also available but is mainly useful for specs, recalls, and suggested OTD price. Not affiliated with either.
@@ -55,7 +55,7 @@ Allows plotting where the car stands relative to the depreciation curve, and pri
 The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the service chosen in the settings.
 
 ## Multiple mode (Alt-W)
-Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
+Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). Blacklist is not supported in android for the time being as it needs a contextmenu, which is not supported.
 
 With version 1.1, a second regression curve is added to give an overview of the listings and how they compare to a regression curve of the fair price. Right clicking the multiple mode allows appending new results to previous sessions. Aggregate data can be downloaded for further analysis.
 
@@ -107,10 +107,10 @@ This is the first browser extension I wrote. I have some experience in Svelte an
 https://addons.mozilla.org/en-US/firefox/addon/car-cost-calculator/
 
 ## from release:
-extract the zip file, navigate to `about:debugging#/runtime/this-firefox` in firefox, temporarily load addon, select `manifest.json`
+google how to debug firefox android extensions, it is a lengthy process that requires usb debugging enabled.
 
 ## from source:
-run `npm install` then `npm run build` in root directory, then navigate to `about:debugging#/runtime/this-firefox` in firefox, temporarily load addon, select `manifest.json` from `build/firefox`
+run `npm install` then `npm run build` in root directory, google how to debug firefox android extensions
 
 # Acknowledgements / Dependencies:
 
