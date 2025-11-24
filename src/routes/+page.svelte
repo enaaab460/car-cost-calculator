@@ -37,9 +37,9 @@
     let odometer: null | number = $state(null)
     let price: null | number  = $state(null)
     let name = $state("")
-    let estimate = $state(0)
-    let beHaggle = $state(0)
-    let AfHaggle = $state(0)
+    // let estimate = $state(0)
+    // let beHaggle = $state(0)
+    // let AfHaggle = $state(0)
 
     let depreciationChart: Chart | null = null;
     let depreciationCanvas = $state<HTMLCanvasElement>()
@@ -47,7 +47,7 @@
     let regressionCanvas = $state<HTMLCanvasElement>()
     let resultText = $state("")
     let regressionDataUrl = $state<string | null>(null)
-    let scrapedMultiple = $state<CarPoint[]>([])
+    // let scrapedMultiple = $state<CarPoint[]>([])
 
     onMount(async () => {
         const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear'];
@@ -73,24 +73,17 @@
         } else if (name){
             drawDepreciationChart()
         }
-
-        result = await chrome.storage.local.get(['scrapedMultiple','scrapedMultipleNew'])
-        if (result.scrapedMultipleNew) {
-            drawRegressionChart(result.scrapedMultipleNew)
-            await chrome.storage.local.remove("scrapedMultiple")
-        } else if (result.scrapedMultiple){
-            year = null
-            odometer = null
-            scrapedMultiple = result.scrapedMultiple
-            drawRegressionChart(result.scrapedMultiple)
-        } 
+        let resultLocal = await chrome.storage.local.get(['scrapedMultiple'])
+        if (resultLocal.scrapedMultiple){
+            drawRegressionChart(resultLocal.scrapedMultiple)
+        }
 
             // chrome.storage.sync.remove('scrapedSingle');
         });
 
     function clearSelectedCar(){
         name = ''
-        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple','scrapedMultipleNew']);
+        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple']);
         chrome.storage.sync.remove('selectedCarName')
         resetResult()
     }
@@ -105,7 +98,7 @@
             clearSelectedCar()
             return;
         }
-        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple','scrapedMultipleNew']);
+        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple']);
         resetResult()
         const lowerCaseName = name.toLowerCase();
         const matchingPreset = carPresets.find(p => p.name.toLowerCase() === lowerCaseName);
@@ -388,22 +381,14 @@
     async function scrapeMultiple(append: boolean){
         year = null
         odometer = null
-        // resetResult()
-        let res:CarPoint[] = await chrome.runtime.sendMessage("get-car-data-multiple")
+        price = null
+        resetResult()
+        var res:CarPoint[]
+        if (append) res = await chrome.runtime.sendMessage("get-car-data-multiple-append")
+        else res = await chrome.runtime.sendMessage("get-car-data-multiple")
         if (res){
-            if (append){
-                await chrome.storage.local.remove("scrapedMultipleNew")
-                // console.log("after scrap")
-                // console.log(scrapedMultiple)
-                // console.log(res)
-                res = $state.snapshot([...scrapedMultiple, ...res])
-                // scrapedMultiple = res
-            }
-
-            res = Array.from(new Map(res.map(item => [item.link, item])).values());
-            // console.log("outside append", res)
+            drawDepreciationChart()
             drawRegressionChart(res)
-            await chrome.storage.local.set({"scrapedMultiple": res})
         }
     }
 </script>
@@ -423,7 +408,7 @@
                 </select>
             </label>
         </div>
-        <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarCost":cost})} oncontextmenu={(e)=> {e.preventDefault(); cost = Math.round((cost * 1.05 + 1.5) * 10) / 10; name = ""}}></label></div>
+        <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarCost":cost})}></label></div>
         <div><label><span>Expected Lifespan</span><input type="number" bind:value={life} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":life})}></label></div>
     </div>
     <div class="block">
