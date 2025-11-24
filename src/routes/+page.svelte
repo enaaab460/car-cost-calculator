@@ -64,9 +64,11 @@
 
         if (result.scrapedSingle){
             const scraped = result.scrapedSingle;
-            if (scraped.year) year = scraped.year - 2000;
-            if (scraped.odometer) odometer = scraped.odometer;
-            if (scraped.price) price = scraped.price / 1000;
+            if (scraped){
+                year = scraped.year - 2000;
+                odometer = scraped.odometer;
+                price = scraped.price / 1000;
+            }
             runCalculation()
         } else if (name){
             drawDepreciationChart()
@@ -131,18 +133,22 @@
         } else if (year == null && odometer != null) {
             old = odometer / yearlyOdometer
             year = (currentyear - 2000) - old
-        } else if (year && odometer) {
+        } else if (year != null && odometer != null) {
             old = currentyear - 2000 - year
             old = (old + odometer/yearlyOdometer) / 2
         } else return
 
         var res = cost * 1000 * Math.pow(1 - 2/life, old)
 
-        estimate = Math.round(res)
-        beHaggle = Math.round(res/(1-haggle/100))
-        AfHaggle = Math.round(res*(1-haggle/100))
-        resultText = `${estimate} (${Math.round(res/1000/cost*100)}%) (${beHaggle} before haggling, ${AfHaggle} after)`
+        // estimate = Math.round(res)
+        // beHaggle = Math.round(res/(1-haggle/100))
+        // AfHaggle = Math.round(res*(1-haggle/100))
+        resultText = `${res.toFixed(0)} (${Math.round(res/1000/cost*100)}% of new)`
             + `<br> ${old.toFixed(1)} y/o (${(old/life*100).toFixed(0)}% of life)`
+        
+        if (price && price > 0) resultText = `${price*1000 > res ? '+' : ''}${(price*1000 - res).toFixed(0)}`
+        + `<br>${price*1000 > res ? '+' : ''}${((price*1000-res)/res*100).toFixed(0)}% (${(price/cost*100).toFixed(0)}% of new)`
+        + `<br>${resultText}`
 
         drawDepreciationChart()
     }
