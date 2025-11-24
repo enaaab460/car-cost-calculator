@@ -66,7 +66,7 @@
             const scraped = result.scrapedSingle;
             if (scraped.year) year = scraped.year - 2000;
             if (scraped.odometer) odometer = scraped.odometer;
-            if (scraped.price) price = scraped.price;
+            if (scraped.price) price = scraped.price / 1000;
             runCalculation()
         } else if (name){
             drawDepreciationChart()
@@ -213,7 +213,7 @@
                 {
                     type: 'scatter',
                     label: 'Car',
-                    data: [{x: old, y: price}],
+                    data: [{x: old, y: price * 1000}],
                     backgroundColor: "black",
                     pointRadius: 5,
                 }
