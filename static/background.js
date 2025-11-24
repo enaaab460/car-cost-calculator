@@ -73,7 +73,7 @@ async function getCarData(mode) {
     const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider', 'blackList'];
     var result = await chrome.storage.sync.get(keys)
     if (!result) return
-    const yearlyOdometer = result.yearlyOdometer || 12;
+    const yearlyOdometer = result.yearlyOdometer || 13.5;
     const haggle = result.haggle || 15;
     let life = result.life || 15;
     let cost = 0;

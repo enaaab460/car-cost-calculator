@@ -35,7 +35,7 @@
     let old = $state(0)
     let year: null | number = $state(null)
     let odometer: null | number = $state(null)
-    let price = $state(0)
+    let price: null | number  = $state(null)
     let name = $state("")
     let estimate = $state(0)
     let beHaggle = $state(0)
@@ -363,6 +363,7 @@
     }
     
     function resetResult(){
+        chrome.storage.local.remove("scrapedSingle")
         resultText = ""
         if (depreciationCanvas) {
             depreciationCanvas.style.height = '0'
@@ -403,7 +404,7 @@
 <main>
     <div class="header">
         <button onclick={()=>window.open("/cars.html", "_blank")} title="Car Presets">🚗</button>
-        <button onclick={openOptionsPage} title="Settings">⚙️</button>
+        <button onclick={()=>window.open("/options.html", "_blank")} title="Settings">⚙️</button>
     </div>
     <div class="block">
         <div>
@@ -423,6 +424,7 @@
         <!-- svelte-ignore a11y_autofocus -->
         <div><label><span>Model Year</span><input type="number" autofocus bind:value={year} oninput={resetResult} oncontextmenu={(e)=> {e.preventDefault(); year = currentyear - 2000}}></label></div>
         <div><label><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
+        <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
     {#if (year || odometer)}
         {@const spLen = name.split(" ").length}

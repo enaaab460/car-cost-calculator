@@ -57,6 +57,8 @@ The mode can read the listing's page for red flags, and color them red and scrol
 ## Multiple mode (Alt-W)
 Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
 
+With version 1.1, a second regression curve is added to give an overview of the listings and how they compare to a regression curve of the fair price. Right clicking the multiple mode allows appending new results to previous sessions. Aggregate data can be downloaded for further analysis.
+
 ## Out-the-door price tangent
 MSRP + non-negotiable fees (gorvernmental or dealer, like destination fees) - incentives.
 Most cars can have >10% incentives, which is the main reason cars are said to lose 10% the moment they are driven off the lot (as new). Brands that do not offer such incentives (namely Toyota) don't have this "issue", which is part of the reason they hold their value more. Other brands have inflate MSRP then offer incentives. Electric cars are also said to lose a lot of their value even if that inflated price was usually not paid, since they offer(ed) significant incentives. Edmunds and KBB can be used as a reference for OTD price in the USA.
@@ -87,11 +89,13 @@ https://www.youtube.com/watch?v=p2Lj5hJU5Ns&pp=ygUSaG93IGxvbmcgY2FycyBsYXN0
 
 https://www.kbb.com/car-depreciation/
 
+https://carconfections.com/reliability-resale-value/
+
 # Disclaimer (might be superfluous)
 
 Since the extension reads the current tab to skim its data for both single and multiple, it is inherently risky to use on a browser where sensitive data is accesssed (eg, banking, sensitive work, ...). If you are already comfortable with ad-blockers and screen-readers, or use any major social network on the same browser, this disclaimer is meaningless. No data is sent back to any back-end related to me. I have used the minimum number of dependancies I can, and yet I can not vouch for them personally. I can only vouch for what I wrote.
 
-AI was used in writing this extension. All code was revised and tested (to the best of my ability).
+AI assisted in writing this extension. All code was revised and tested (to the best of my ability).
 
 This is the first browser extension I wrote.
 
