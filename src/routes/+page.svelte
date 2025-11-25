@@ -49,8 +49,13 @@
     let regressionDataUrl = $state<string | null>(null)
     // let scrapedMultiple = $state<CarPoint[]>([])
 
+    let domain = $state("")
+    let singleExist = $state(false)
+    let multipleExist = $state(false)
+    let alwaysSort = $state(false)
+
     onMount(async () => {
-        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear'];
+        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'selectorConfigs', 'alwaysSort'];
         let result = await chrome.storage.sync.get(keys)
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         else openOptionsPage()
@@ -78,6 +83,13 @@
             drawRegressionChart(resultLocal.scrapedMultiple)
         }
 
+        var tab = await chrome.tabs.query({active: true, currentWindow: true})
+        if (!tab[0]) return
+        let tabUrl = tab[0].url!
+        if (result.selectorConfigs){
+            singleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'single') != null
+            multipleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'single') != null
+        }
             // chrome.storage.sync.remove('scrapedSingle');
         });
 
@@ -434,20 +446,26 @@
         </div>
     {/if}
     <div class="mb-1">
-        <button onclick={async ()=> {
-            let res = await chrome.runtime.sendMessage("get-car-data-single")
-            console.log(res)
-            if (res){
-                year = res.year - 2000
-                odometer = res.odometer
-                price = res.price
-                resetResult()
-                runCalculation()
-            }
-        }}>Single Car</button>
-        <button onclick={async () => await scrapeMultiple(false)}
-        oncontextmenu={async (e)=> {e.preventDefault(); await scrapeMultiple(true)}}>Multiple Cars</button>
-        <button onclick={()=>chrome.runtime.sendMessage("sort-cars")}>Sort</button>
+        {#if singleExist}
+            <button onclick={async ()=> {
+                let res = await chrome.runtime.sendMessage("get-car-data-single")
+                console.log(res)
+                if (res){
+                    year = res.year - 2000
+                    odometer = res.odometer
+                    price = res.price
+                    resetResult()
+                    runCalculation()
+                }
+            }}>Single Car</button>
+        {:else}
+            <button onclick={()=> chrome.runtime.sendMessage("get-red-flags")}>Red Flags</button>
+        {/if}
+        {#if multipleExist}
+            <button onclick={async () => await scrapeMultiple(false)}
+            oncontextmenu={async (e)=> {e.preventDefault(); await scrapeMultiple(true)}}>Multiple Cars</button>
+            <button onclick={()=>chrome.runtime.sendMessage("sort-cars")}>Sort</button>
+        {/if}
     </div>
     {#if !(year || odometer)}
         <div>

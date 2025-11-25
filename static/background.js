@@ -56,6 +56,8 @@ chrome.commands.onCommand.addListener((command) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
     if (message === "get-car-data-single") {
         sendResponse(getCarData('single'))
+    } else if (message === "get-red-flags") {
+        getCarData('red-flags')
     } else if (message === "get-car-data-multiple") {
         sendResponse(getCarData('multiple'))
     } else if (message === "get-car-data-multiple-append") {
@@ -141,35 +143,113 @@ async function getCarData(mode, append) {
         message: `Using ${mode} mode`
     });
 
-    var results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: injectedFunction,
-        args: [mode, currentyear, cost * 1000, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, blackList[domain]]
-    })
-    console.log(results)
     var res
-    if (results && results[0]) {
-        res = results[0].result[0]
-        if (res) {
-            if (mode === 'single'){
-                chrome.storage.sync.set({ 'scrapedSingle': res });
-                if (res.redFlags){
-                    chrome.notifications.create({
-                        type: 'basic',
-                        iconUrl: 'icons/icon-128x128.png',
-                        title: `Page contains red flag keyword`,
-                        message: `Check red text for ${(res.redFlags)}`
-                    });
-                }
-            } else {
-                if (append) {
-                    let { scrapedMultiple } = await chrome.storage.local.get("scrapedMultiple")
-                    if (scrapedMultiple) {
-                        res.push(...scrapedMultiple)
-                        res = Array.from(new Map(res.map(item => [item.link, item])).values())
+    if (thisSelector && mode != "red-flags"){
+        var results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: (mode, thisSelector, blackList, currentyear, yearlyOdometer, life, cost)=>{
+                var retVal = {}
+                var remCount = 0
+                if (mode == "multiple") retVal = []
+                console.time("blacklist")
+                for (let b of blackList){
+                    let el = document.querySelector(`${thisSelector.carSelector}:has(a[href^="${b}"])`)
+                    if (el) {
+                        el.remove()
+                        remCount++
                     }
                 }
-                await chrome.storage.local.set({ 'scrapedMultiple': res })
+                console.timeEnd("blacklist")
+                const carElements = document.querySelectorAll(thisSelector.carSelector);
+                console.time("Price")
+                carElements.forEach(el => {
+                    try {
+                        el.querySelector(".ext-diff")?.remove();
+                        const yearElement = el.querySelector(thisSelector.yearSelector);
+                        if (!yearElement) {
+                            console.error(`yearElement ${thisSelector.yearSelector} not found in ${el}`);
+                            return;
+                        }
+                        const priceElement = el.querySelector(thisSelector.priceSelector);
+                        if (!priceElement) {
+                            console.error(`priceElement ${thisSelector.priceSelector} not found in ${el}`);
+                            return;
+                        }
+                        const odometerElement = el.querySelector(thisSelector.odometerSelector);
+                        // if (!odometerElement) {
+                        //     console.error(`odometerElement ${thisSelector.odometerSelector} not found`);
+                        //     return;
+                        // }
+                        priceElement.style.fontStyle = "";
+                        var year = 0;
+                        if (yearElement) {
+                            year = parseInt(yearElement.textContent.match(/\d+/)[0]);
+                        }
+                        const priceMatch = priceElement.textContent.replaceAll(',', '').match(/\$?(\d+)(\.\d+)?/);
+                        if (!priceMatch) return;
+                        const price = parseInt(priceMatch[1]);
+                        var odometer = 0;
+                        if (odometerElement) {
+                            var odText = odometerElement.textContent.toLowerCase();
+                            const odometerMatch = odText.replaceAll(',', '').match(/(\d+)(\.\d+)?k?( (mi|km))?/);
+                            if (odometerMatch) {
+                                odometer = parseInt(odometerMatch[1]);
+                                if (!odText.includes("k")) odometer = odometer / 1000;
+                            }
+                        }
+                        var old = ((currentyear - year) + odometer / yearlyOdometer) / 2;
+                        var costFrac = Math.pow(1 - 2 / life, old)
+                        var res = Math.round(cost * costFrac);
+                        var beHaggle = Math.round(res / (1 - haggle / 100));
+                        var afHaggle = Math.round(res * (1 - haggle / 100));
+                        var color;
+                        if (price <= res * 1 / 2) color = "yellow";
+                        else if (price <= afHaggle) color = "green";
+                        else if (price <= res) color = "cyan";
+                        else if (price <= beHaggle) color = "purple";
+                        else if (price <= res * 3 / 2) color = "red";
+                        else color = "saddlebrown"
+                        priceElement.style.color = color;
+                        if (old > life) priceElement.style.textDecoration = "line-through";
+                        else if (old / life > 2 / 4) priceElement.style.textDecoration = "underline";
+                        else if (old / life < 1 / 4) priceElement.style.fontStyle = "italic";
+                        var tempEl = document.createElement("span");
+                        tempEl.className = "ext-diff";
+                        tempEl.textContent = ` (${price > res ? '+' : ''}${String(price - res)})`;
+                        priceElement.title = `${price > res ? '+' : ''}${Math.round((price - res)/res*100)}% (${Math.round(price/cost*100)}% of new) \r\n` + 
+                            `${String(res)} (${Math.round(costFrac*100)}% of new) \r\n` + 
+                            `${old.toFixed(1)} y/o (${Math.round(old / life * 100)}% of life)`;
+                        if (mode == "multiple") {
+                            el.title = priceElement.title
+                            retVal.push({name: yearElement.textContent.trim(), link: el.querySelector("a").href ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer * 1000, res})
+                        }else retVal = { year, odometer, price }
+                        el.diffNum = price - res
+                        priceElement.append(tempEl);
+                    } catch (error) {
+                        console.error(error);
+                        retVal = error
+                    }
+                });
+                console.timeEnd("Price")
+            },
+            args: [mode, thisSelector, blackList[domain], currentyear, yearlyOdometer, life, cost * 1000]
+        })
+        console.log(results)
+        if (results && results[0]) {
+            res = results[0].result[0]
+            if (res) {
+                if (mode === 'single'){
+                    chrome.storage.sync.set({ 'scrapedSingle': res });
+                } else {
+                    if (append) {
+                        let { scrapedMultiple } = await chrome.storage.local.get("scrapedMultiple")
+                        if (scrapedMultiple) {
+                            res.push(...scrapedMultiple)
+                            res = Array.from(new Map(res.map(item => [item.link, item])).values())
+                        }
+                    }
+                    await chrome.storage.local.set({ 'scrapedMultiple': res })
+                }
             }
         }
         if (results[0].result[1] > 0) {
@@ -180,188 +260,125 @@ async function getCarData(mode, append) {
                 message: `Total ${blackList.length} blacklisted listings`
             });
         }
+        if (mode == "multiple" && alwaysSort) sortCars()
     }
-    if (mode == "multiple" && alwaysSort) sortCars()
+    if (mode != "multiple"){
+        var redFlags = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func:(mode, redFlags, thisSelector, name, odometer)=>{
+                var retVal = []
+                redFlags = redFlags.toLowerCase().split(/ ?, ?/)
+                flags = new Set()
+                function checkChildren(el){
+                    if (!el.tagName) return
+                    if (el.tagName == "SCRIPT" || el.tagName == "STYLE" || el.id == "ext-danger") return
+                    if (el.getBoundingClientRect().height < 1) return
+                    for (let x of el.childNodes){
+                        if (x.nodeName == "#text"){
+                            text = x.textContent.trim().toLowerCase()
+                            if (!text) continue
+                            for (r of redFlags){
+                                if (text.includes(r)){
+                                    if (!el.flags) el.flags = []
+                                    if (!el.flags.includes(r)) el.flags.push(r)
+                                    flags.add(r)
+                                }
+                            }
+                            if (el.flags){
+                                console.log(el, el.flags)
+                                el.style.color = "red"
+                                el.classList.add("ext-redFlags")
+                                el.title = el.flags
+                                el.oncontextmenu = (e) => {
+                                    e.preventDefault()
+                                    el.style.color = ""
+                                    el.title.remove()
+                                    el.classList.remove("ext-redFlags")
+                                    el.oncontextmenu.remove()
+                                }
+                            }
+                        } else checkChildren(x)
+                    }
+                }
+                console.time("redFlags")
+                checkChildren(document.querySelector(thisSelector.carSelector))
+                console.timeEnd("redFlags")
+                var myStats
+                if (!document.querySelector('#ext-stats')) {
+                    myStats = document.createElement("div")
+                    myStats.id = "ext-stats"
+                    myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
+                    myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
+                    document.querySelector("body").append(myStats)
+                }
+                if (flags.size > 0){
+                    retVal = Array.from(flags)
+                    let msg = `Red Flags: ${retVal}`
+                    if (!document.querySelector('#ext-danger')){
+                        let danger = document.createElement("div")
+                        danger.id = "ext-danger"
+                        danger.style = "color: red;"
+                        let l = document.createElement("span")
+                        l.textContent = "Red Flags: "
+                        l.oncontextmenu = (e) => {e.preventDefault(); danger.remove()}
+                        danger.append(l)
+                        for (let r of retVal.redFlags){
+                            let l = document.createElement("span")
+                            if (r == retVal.redFlags.at(-1)) l.textContent = r
+                            else l.textContent = `${r}, `
+                            l.oncontextmenu = (e) => {e.preventDefault(); l.remove()}
+                            danger.append(l)
+                        }
+                        myStats.append(danger)
+                    }
+                    alert(msg)
+                    for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
+                        e.scrollIntoView({block: "center"})
+                        let grandParent = e.parentElement.parentElement
+                        grandParent.style.border = "solid red 2px"
+                        await new Promise(resolve => setTimeout(resolve, 1000))
+                        grandParent.style.border = ""
+                    }
+                }
+                let vin = document.querySelector(thisSelector.carSelector).innerText.match(/\b[\w\d]{17}\b/)
+                if (vin){
+                    vin = vin[0]
+                    var check = document.getElementById("ext-checkTitle")
+                    if (!check){
+                        check = document.createElement("a")
+                        check.textContent = "Check Title"
+                        check.id = "ext-checkTitle"
+                        myStats.append(check)
+                    }
+                    check.onclick = () => window.open(vinProvider.replace("%s",vin))
+                    var kbb = document.getElementById("ext-checkKBB")
+                    if (!kbb){
+                        kbb = document.createElement("a")
+                        kbb.textContent = "Check KBB"
+                        kbb.id = "ext-checkKBB"
+                        myStats.append(kbb)
+                    }
+                    kbb.onclick = () => window.open(`https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`)
+                    // await navigator.clipboard.writeText(vin)
+                    if (alwaysVinCheck) check.click()
+                }
+                return retVal
+            },
+            args: [mode, redFlags, thisSelector, name, res.odometer]
+        })
+        console.log(redFlags)
+        if (redFlags && redFlags.results[0]){
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon-128x128.png',
+                title: `Page contains red flag keyword`,
+                message: `Check red text for ${(redFlags.results[0])}`
+            });
+        }
+    }
     return res
 }
 
-async function injectedFunction(mode, currentyear, cost, haggle, life, yearlyOdometer, thisSelector, redFlags, alwaysVinCheck, vinProvider, blackList){
-    var retVal = {}
-    var remCount = 0
-    if (mode == "multiple") retVal = []
-    if (thisSelector){
-        console.time("blacklist")
-        for (let b of blackList){
-            let el = document.querySelector(`${thisSelector.carSelector}:has(a[href^="${b}"])`)
-            if (el) {
-                el.remove()
-                remCount++
-            }
-        }
-        console.timeEnd("blacklist")
-        const carElements = document.querySelectorAll(thisSelector.carSelector);
-        console.time("Price")
-        carElements.forEach(el => {
-            try {
-                el.querySelector(".ext-diff")?.remove();
-                const yearElement = el.querySelector(thisSelector.yearSelector);
-                if (!yearElement) {
-                    console.error(`yearElement ${thisSelector.yearSelector} not found in ${el}`);
-                    return;
-                }
-                const priceElement = el.querySelector(thisSelector.priceSelector);
-                if (!priceElement) {
-                    console.error(`priceElement ${thisSelector.priceSelector} not found in ${el}`);
-                    return;
-                }
-                const odometerElement = el.querySelector(thisSelector.odometerSelector);
-                // if (!odometerElement) {
-                //     console.error(`odometerElement ${thisSelector.odometerSelector} not found`);
-                //     return;
-                // }
-                priceElement.style.fontStyle = "";
-                var year = 0;
-                if (yearElement) {
-                    year = parseInt(yearElement.textContent.match(/\d+/)[0]);
-                }
-                const priceMatch = priceElement.textContent.replaceAll(',', '').match(/\$?(\d+)(\.\d+)?/);
-                if (!priceMatch) return;
-                const price = parseInt(priceMatch[1]);
-                var odometer = 0;
-                if (odometerElement) {
-                    var odText = odometerElement.textContent.toLowerCase();
-                    const odometerMatch = odText.replaceAll(',', '').match(/(\d+)(\.\d+)?k?( (mi|km))?/);
-                    if (odometerMatch) {
-                        odometer = parseInt(odometerMatch[1]);
-                        if (!odText.includes("k")) odometer = odometer / 1000;
-                    }
-                }
-                var old = ((currentyear - year) + odometer / yearlyOdometer) / 2;
-                var costFrac = Math.pow(1 - 2 / life, old)
-                var res = Math.round(cost * costFrac);
-                var beHaggle = Math.round(res / (1 - haggle / 100));
-                var afHaggle = Math.round(res * (1 - haggle / 100));
-                var color;
-                if (price <= res * 1 / 2) color = "yellow";
-                else if (price <= afHaggle) color = "green";
-                else if (price <= res) color = "cyan";
-                else if (price <= beHaggle) color = "purple";
-                else if (price <= res * 3 / 2) color = "red";
-                else color = "saddlebrown"
-                priceElement.style.color = color;
-                if (old > life) priceElement.style.textDecoration = "line-through";
-                else if (old / life > 2 / 4) priceElement.style.textDecoration = "underline";
-                else if (old / life < 1 / 4) priceElement.style.fontStyle = "italic";
-                var tempEl = document.createElement("span");
-                tempEl.className = "ext-diff";
-                tempEl.textContent = ` (${price > res ? '+' : ''}${String(price - res)})`;
-                priceElement.title = `${price > res ? '+' : ''}${Math.round((price - res)/res*100)}% (${Math.round(price/cost*100)}% of new) \r\n` + 
-                    `${String(res)} (${Math.round(costFrac*100)}% of new) \r\n` + 
-                    `${old.toFixed(1)} y/o (${Math.round(old / life * 100)}% of life)`;
-                if (mode == "multiple") {
-                    el.title = priceElement.title
-                    retVal.push({name: yearElement.textContent.trim(), link: el.querySelector("a").href ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer * 1000, res})
-                }else retVal = { year, odometer, price }
-                el.diffNum = price - res
-                priceElement.append(tempEl);
-            } catch (error) {
-                console.error(error);
-                retVal = error
-            }
-        });
-        console.timeEnd("Price")
-    } else thisSelector = {carSelector: "body"}
-    if (mode == "single"){
-        redFlags = redFlags.toLowerCase().split(/ ?, ?/)
-        flags = new Set()
-        function checkChildren(el){
-            if (!el.tagName) return
-            if (el.tagName == "SCRIPT" || el.tagName == "STYLE" || el.id == "ext-danger") return
-            if (el.getBoundingClientRect().height < 1) return
-            for (let x of el.childNodes){
-                if (x.nodeName == "#text"){
-                    text = x.textContent.trim().toLowerCase()
-                    if (!text) continue
-                    for (r of redFlags){
-                        if (text.includes(r)){
-                            if (!el.flags) el.flags = []
-                            if (!el.flags.includes(r)) el.flags.push(r)
-                            flags.add(r)
-                        }
-                    }
-                    if (el.flags){
-                        console.log(el, el.flags)
-                        el.style.color = "red"
-                        el.classList.add("ext-redFlags")
-                        el.title = el.flags
-                        el.oncontextmenu = (e) => {
-                            e.preventDefault()
-                            el.style.color = ""
-                            el.title.remove()
-                            el.classList.remove("ext-redFlags")
-                            el.oncontextmenu.remove()
-                        }
-                    }
-                } else checkChildren(x)
-            }
-        }
-        console.time("redFlags")
-        checkChildren(document.querySelector(thisSelector.carSelector))
-        console.timeEnd("redFlags")
-        var myStats
-        if (!document.querySelector('#ext-stats')) {
-            myStats = document.createElement("div")
-            myStats.id = "ext-stats"
-            myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
-            myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
-            document.querySelector("body").append(myStats)
-        }
-        if (flags.size > 0){
-            retVal.redFlags = Array.from(flags)
-            let msg = `Red Flags: ${retVal.redFlags}`
-            if (!document.querySelector('#ext-danger')){
-                let danger = document.createElement("div")
-                danger.id = "ext-danger"
-                danger.style = "color: red;"
-                let l = document.createElement("span")
-                l.textContent = "Red Flags: "
-                l.oncontextmenu = (e) => {e.preventDefault(); danger.remove()}
-                danger.append(l)
-                for (let r of retVal.redFlags){
-                    let l = document.createElement("span")
-                    if (r == retVal.redFlags.at(-1)) l.textContent = r
-                    else l.textContent = `${r}, `
-                    l.oncontextmenu = (e) => {e.preventDefault(); l.remove()}
-                    danger.append(l)
-                }
-                myStats.append(danger)
-            }
-            alert(msg)
-            for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
-                e.scrollIntoView({block: "center"})
-                let grandParent = e.parentElement.parentElement
-                grandParent.style.border = "solid red 2px"
-                await new Promise(resolve => setTimeout(resolve, 1000))
-                grandParent.style.border = ""
-            }
-        }
-        let vin = document.querySelector(thisSelector.carSelector).innerText.match(/\b[\w\d]{17}\b/)
-        if (vin){
-            vin = vin[0]
-            var check = document.getElementById("ext-checkTitle")
-            if (!check){
-                check = document.createElement("a")
-                check.textContent = "Check Title"
-                check.id = "ext-checkTitle"
-                myStats.append(check)
-            }
-            check.onclick = () => window.open(vinProvider.replace("%s",vin))
-            // await navigator.clipboard.writeText(vin)
-            if (alwaysVinCheck) check.click()
-        }
-    }
-    return [retVal, remCount]
-}
 
 async function sortCars() {
     var {selectorConfigs} = await chrome.storage.sync.get("selectorConfigs")
