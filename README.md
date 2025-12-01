@@ -59,7 +59,9 @@ Hovering over the price in either mode will show a brief summary of the car disc
 ## Single Mode (Alt-Q)
 Allows plotting where the car stands relative to the depreciation curve, and price styles. If the css selectors of the website are registered, it will automatically parse it for the year, miles and price. It can be still be used standalone without registering the website. If the name of the car is the same as KBB, then using the KBB button will allow quick access to kbb price estimator. If the trim is also the same, the '+trim' will provide 1-click shortcut. Edmunds support is also available but is mainly useful for specs, recalls, and suggested OTD price. Not affiliated with either. When choosing trims, I would recommend either picking the least trim that has all the features you need, or the most popular one. 
 
-The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the service chosen in the settings.
+The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the service chosen in the settings. 
+
+If the website is not registered, it will be replaced by a `Red Flags` button that only checks for red flags.
 
 ## Multiple mode (Alt-W)
 Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
@@ -75,7 +77,7 @@ Most cars can have >10% incentives, which is the main reason cars are said to lo
 Even if many toyotas regularly exceed 250k miles, this should not taken for granted. In the iseecars article below, most of their models reach 250k miles less than 20% of the time. Since they sell millions of cars, 20% of that is still millions, but many more won't reach that number. Some models and years had engine problems and needed recalls, like all manufacturers. They are the most reliable for sure, but not bullet-proof, and not barely broken in at 100k miles. Especially if you don't know how it was taken care of. Even if the drivetrain is alright, because the rest of the car might not, the car can be totaled regardless. It is fair to estimate the lifespan of their good models (not the GR86/BRZ, oil burning 2010 camry,...) to be 20 years, what I have found that many facebook marketplace judge corolla's depreciation as if they last 30+ years. That said, many others still follow the curve of 20 year lifespan. ~40% of tacomas exceed 250k miles, according to the same article. But there are (relatively) many callbacks of toyota cars and trucks recently so avoid blind brand loyalty, and research individual models.
 
 ## Depreciation Tangent
-If most cars are way above the depreciation curve, this could mean that the lifespan estimated is smaller than what the market agreed upon. The lifespan you chose might have been too conservative (eg, 10 years for a corolla), or because they believe that these cars hold their value (limited-production cars tend to hold their value, or even appreciate). If a car has lots of miles and is regularly only slightly cheaper than new, maybe buying it new makes more sense. It will be in better shape, you will have warranty (and peace of mind), you will know its maintanence exactly, and will have better finance and insurance rates.
+If most cars are way above the depreciation curve, this could mean that the lifespan estimated is smaller than what the market agreed upon. The lifespan you chose might have been too conservative (eg, 10 years for a corolla), or because they believe that these cars hold their value (limited-production cars tend to hold their value, or even appreciate). If a car has lots of miles and is regularly only slightly cheaper than new, maybe buying it new makes more sense. It will be in better shape, you will have warranty (and peace of mind), you will know its maintanence exactly, and will have better finance and insurance rates. If you can't beat them, join them.
 
 Covid cars were sold over MSRP, and were in short supply, that they inherently costed more. So they are expected to be overpriced. But they make little sense now that the market is correcting and they cost close to new.
 
@@ -87,7 +89,7 @@ Exotic cars also don't typically follow the depreciation curve. They might not b
 
 Branded cars are inherently more risky than clean title cars, but if they are properly discounted (25% to +50%), they might be worth it, if you can prove they were properly fixed. Insurance might be very expensive, or unavailable, and they might be illegal to drive on public roads, and might still require expensive or impossible repairs.
 
-Clean title cars can also have unwelcome surprises, since repairs done outside insurance will not affect the title. Car history services can simplify the process a bit, but they should not replace a proper pre-purchase inspection (PPI).
+Clean title cars can also have unwelcome surprises, since repairs done outside insurance will not affect the title. Car history services can simplify the process a bit, but they should not replace a proper pre-purchase inspection (PPI). Read about car title washing.
 
 ### Sources:
 
@@ -113,7 +115,7 @@ Since the extension reads the current tab to skim its data for both single and m
 
 This is the first browser extension I wrote. I have some experience in Svelte and JS, and have programmed for many years. But it is not my day job, so not all best practices were followed.
 
-AI assisted in writing this extension, namely free Gemini 2.5 flash and chatgpt-5 in vscode. All code was revised and tested (to the best of my ability). Vibe-coding was attempted at multiple points, with varying degrees of success. It helped alot at figuring out the correct chrome apis I needed, but was very frustrating at times and I had to roll back many prompts and write them myself.
+AI assisted in writing this extension, namely free Gemini 2.5 and chatgpt-5 in vscode. All code was revised and tested (to the best of my ability). Vibe-coding was attempted at multiple points, with varying degrees of success. It helped alot at figuring out the correct chrome apis I needed, but was very frustrating at times and I had to roll back many prompts and write them myself. Aiding in bug fixes was more useful.
 
 I am not in the automotive industry, many statements made in this post were read or heard online, and should be taken with a grain of salt.
 

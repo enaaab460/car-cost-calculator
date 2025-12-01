@@ -37,9 +37,9 @@
     let odometer: null | number = $state(null)
     let price: null | number  = $state(null)
     let name = $state("")
-    // let estimate = $state(0)
-    // let beHaggle = $state(0)
-    // let AfHaggle = $state(0)
+    let fairPrice = $state(0)
+    let beHaggle = $state(0)
+    let afHaggle = $state(0)
 
     let depreciationChart: Chart | null = null;
     let depreciationCanvas = $state<HTMLCanvasElement>()
@@ -52,6 +52,7 @@
     // let domain = $state("")
     let singleExist = $state(false)
     let multipleExist = $state(false)
+    let resultElement = $state<HTMLElement>()
     // let alwaysSort = $state(false)
 
     onMount(async () => {
@@ -143,26 +144,10 @@
             old = (old + odometer/yearlyOdometer) / 2
         } else return
 
-        var res = cost * 1000 * Math.pow(1 - 2/life, old)
-
-        let beHaggle = Math.round(res/(1-haggle/100))
-        let afHaggle = Math.round(res*(1-haggle/100))
-        var color;
-        var resultElement = document.getElementById("result")
-        if (resultElement){
-            if (price){
-                if (price <= res * 1 / 2) color = "yellow";
-                else if (price <= afHaggle) color = "green";
-                else if (price <= res) color = "cyan";
-                else if (price <= beHaggle) color = "purple";
-                else if (price <= res * 3 / 2) color = "red";
-                else color = "saddlebrown"
-                resultElement.style.setProperty("color", color, "important");
-            }
-            if (old > life) resultElement.style.textDecoration = "line-through";
-            else if (old / life > 2 / 4) resultElement.style.textDecoration = "underline";
-            else if (old / life < 1 / 4) resultElement.style.fontStyle = "italic";
-        }
+        let res = cost * 1000 * Math.pow(1 - 2/life, old)
+        fairPrice = res
+        beHaggle = Math.round(res/(1-haggle/100))
+        afHaggle = Math.round(res*(1-haggle/100))
         resultText = `${res.toFixed(0)} (${Math.round(res/1000/cost*100)}% of new)`
             + `<br> ${old.toFixed(1)} y/o (${(old/life*100).toFixed(0)}% of life)`
         
@@ -456,7 +441,21 @@
                 <button onclick={edmunds}>Edmunds</button>
             {/if}
         </div>
-        <div id="result">
+        <div bind:this={resultElement} 
+            style:color={
+                (price) ? (
+                    (price*1000 <= fairPrice * 1 / 2) ? "yellow" : 
+                    (price*1000 <= afHaggle) ? "green" :
+                    (price*1000 <= fairPrice) ? "cyan" :
+                    (price*1000 <= beHaggle) ? "purple" :
+                    (price*1000 <= fairPrice * 3 / 2) ? "red" :
+                    "saddlebrown"
+                ) : "black"
+            }
+            style:textDecoration = { (old > life) ? "line-through" : (old / life > 2/4) ? "underline" : ""};
+            style:fontStyle = {(old / life < 1 / 4) ? "italic" : ""}
+            class="mb-1" style:background-color = "grey" style:padding = "0.5em"
+        >
             {@html resultText}
         </div>
     {/if}
