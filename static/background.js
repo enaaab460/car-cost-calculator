@@ -177,12 +177,13 @@ async function getCarData(mode, append) {
                     }
                 });
                 console.timeEnd("Price")
+                return retVal
             },
             args: [mode, thisSelector, blackList[domain], currentyear, yearlyOdometer, life, cost * 1000, haggle]
         })
         console.log(results)
         if (results && results[0]) {
-            res = results[0].result[0]
+            res = results[0].result
             if (res) {
                 if (mode === 'single'){
                     chrome.storage.sync.set({ 'scrapedSingle': res });
@@ -197,14 +198,14 @@ async function getCarData(mode, append) {
                     await chrome.storage.local.set({ 'scrapedMultiple': res })
                 }
             }
-        }
-        if (results[0].result[1] > 0) {
-            chrome.notifications.create({
-                type: 'basic',
-                iconUrl: 'icons/icon-128x128.png',
-                title: `Removed ${results[0].result[1]} blacklisted listings`,
-                message: `Total ${blackList.length} blacklisted listings`
-            });
+            if (results[0].result[1] > 0) {
+                chrome.notifications.create({
+                    type: 'basic',
+                    iconUrl: 'icons/icon-128x128.png',
+                    title: `Removed ${results[0].result[1]} blacklisted listings`,
+                    message: `Total ${blackList.length} blacklisted listings`
+                });
+            }
         }
         if (mode == "multiple" && alwaysSort) sortCars()
     }
@@ -308,13 +309,6 @@ async function getCarData(mode, append) {
                     // let model = split[1]
                     // await navigator.clipboard.writeText(vin)
                     // if (alwaysVinCheck) check.click()
-                }
-                for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
-                    e.scrollIntoView({block: "center"})
-                    let grandParent = e.parentElement.parentElement
-                    grandParent.style.border = "solid red 2px"
-                    await new Promise(resolve => setTimeout(resolve, 1000))
-                    grandParent.style.border = ""
                 }
                 return retVal
             },
