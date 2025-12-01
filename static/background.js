@@ -237,7 +237,7 @@ async function getCarData(mode, append) {
         })
         console.log(results)
         if (results && results[0]) {
-            res = results[0].result[0]
+            res = results[0].result
             if (res) {
                 if (mode === 'single'){
                     chrome.storage.sync.set({ 'scrapedSingle': res });
@@ -252,14 +252,14 @@ async function getCarData(mode, append) {
                     await chrome.storage.local.set({ 'scrapedMultiple': res })
                 }
             }
-        }
-        if (results[0].result[1] > 0) {
-            chrome.notifications.create({
-                type: 'basic',
-                iconUrl: 'icons/icon-128x128.png',
-                title: `Removed ${results[0].result[1]} blacklisted listings`,
-                message: `Total ${blackList.length} blacklisted listings`
-            });
+            if (results[0].result[1] > 0) {
+                chrome.notifications.create({
+                    type: 'basic',
+                    iconUrl: 'icons/icon-128x128.png',
+                    title: `Removed ${results[0].result[1]} blacklisted listings`,
+                    message: `Total ${blackList.length} blacklisted listings`
+                });
+            }
         }
         if (mode == "multiple" && alwaysSort) sortCars()
     }
