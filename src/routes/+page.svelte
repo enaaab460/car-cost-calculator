@@ -454,7 +454,7 @@
             }
             style:textDecoration = { (old > life) ? "line-through" : (old / life > 2/4) ? "underline" : ""};
             style:fontStyle = {(old / life < 1 / 4) ? "italic" : ""}
-            class="mb-1" style:background-color = "grey" style:padding = "0.5em"
+            class="mb-1" style:background-color = "grey" style:padding = {resultText ? "0.5em" : ""}
         >
             {@html resultText}
         </div>

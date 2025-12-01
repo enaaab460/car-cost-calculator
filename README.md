@@ -68,7 +68,15 @@ Should be used for the same car model, and if possible, include only the trims a
 
 Sorting can break the outline of some websites if the car css selector is not perfect, so it is not enabled after every Multiple mode by default. Some deals might be styled as unreasonable when they are simply a higher trim than the preset chosen, so further insight is needed.
 
-With version 1.1, a second regression curve is added to give an overview of the listings and how they compare to a regression curve of the fair price. Right clicking the multiple mode allows appending new results to previous sessions. Aggregate data can be downloaded for further analysis.
+With version 1.1, a second regression curve is added to give an overview of the listings and how they compare to a regression curve of the fair price. Right clicking the multiple mode allows appending new results to previous sessions. Aggregate data can be downloaded for further analysis. I am not sure how useful the regression curve of the fair price is, or how it should be interpreted. For the time being, here is how I interpret it, from best to worst case scenario:
+
+* Market line is below fair line.
+
+* Most of the market line is below the fair line.
+
+* Most of the market line is above the fair line.
+
+* Market line is above fair line.
 
 ## Out-the-door price tangent
 MSRP + non-negotiable fees (gorvernmental or dealer, like taxes or destination fees) - incentives.
