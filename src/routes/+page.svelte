@@ -102,9 +102,9 @@
     function onCarChange() {
         life = 0
         cost = 0
-        price = 0
         year = null
         odometer = null
+        price = null
         if (!name) {
             clearSelectedCar()
             return;
@@ -271,7 +271,7 @@
         if (regressionChart) {
             regressionChart.destroy();
         }
-        if (!regressionCanvas) return
+        if (!regressionCanvas || !data) return
 
         let scatterData = data.map((x: CarPoint) => ({ x: x.age, y: x.price }))
 
@@ -288,7 +288,7 @@
         const regression = calculateRegressionLine(scatterData);
         const { m, b, trendlineData } = regression;
         
-        var optTrendline = [{x: 0, y: cost * 1000},{x: life, y: cost * 1000 * Math.pow(1 - 2/life, life)}]
+        // var optTrendline = [{x: 0, y: cost * 1000},{x: life, y: cost * 1000 * Math.pow(1 - 2/life, life)}]
         let xAxis = Array.from({ length: life+1 }, (_, i) => i)
         let correct = xAxis.map(x => ({x: x, y: cost * 1000 * Math.pow(1 - 2/life, x)}))
         const { m: om, b: ob, trendlineData: otl } = calculateRegressionLine(correct)
@@ -419,7 +419,7 @@
             </label>
         </div>
         <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarCost":cost})}></label></div>
-        <div><label><span>Expected Lifespan</span><input type="number" bind:value={life} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":life})}></label></div>
+        <div><label title={`${life*yearlyOdometer}k`}><span>Expected Lifespan</span><input type="number" bind:value={life} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":life})}></label></div>
     </div>
     <div class="block">
         <!-- svelte-ignore a11y_autofocus -->

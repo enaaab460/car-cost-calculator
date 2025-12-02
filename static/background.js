@@ -6,6 +6,12 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ["page"],
   });
 
+chrome.contextMenus.create({
+    id: "get-red-flags",
+    title: "Red Flags",
+    contexts: ["page"],
+  });
+
   chrome.contextMenus.create({
     id: "get-car-data-multiple",
     title: "Multiple Cars",
@@ -34,6 +40,8 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "get-car-data-single") {
     getCarData('single');
+  } else if (info.menuItemId === "get-red-flags") {
+    getCarData('red-flags');
   } else if (info.menuItemId === "get-car-data-multiple") {
     getCarData('multiple');
   } else if (info.menuItemId === "sort-cars") {
@@ -150,16 +158,18 @@ async function getCarData(mode, append) {
             func: (mode, thisSelector, blackList, currentyear, yearlyOdometer, life, cost, haggle)=>{
                 var retVal = {}
                 var remCount = 0
-                if (mode == "multiple") retVal = []
-                console.time("blacklist")
-                for (let b of blackList){
-                    let el = document.querySelector(`${thisSelector.carSelector}:has(a[href^="${b}"])`)
-                    if (el) {
-                        el.remove()
-                        remCount++
+                if (mode == "multiple") {
+                    retVal = []
+                    console.time("blacklist")
+                    for (let b of blackList){
+                        let el = document.querySelector(`${thisSelector.carSelector}:has(a[href^="${b}"])`)
+                        if (el) {
+                            el.remove()
+                            remCount++
+                        }
                     }
+                    console.timeEnd("blacklist")
                 }
-                console.timeEnd("blacklist")
                 const carElements = document.querySelectorAll(thisSelector.carSelector);
                 console.time("Price")
                 carElements.forEach(el => {
@@ -272,10 +282,13 @@ async function getCarData(mode, append) {
                 var retVal = []
                 redFlags = redFlags.toLowerCase().split(/ ?, ?/)
                 flags = new Set()
+                var exclude = []
+                if (thisSelector.excludeSelector) exclude = Array.from(document.querySelectorAll(thisSelector.excludeSelector))
                 function checkChildren(el){
                     if (!el.tagName) return
                     if (el.tagName == "SCRIPT" || el.tagName == "STYLE" || el.id == "ext-danger") return
-                    if (el.getBoundingClientRect().height < 1) return
+                    if (exclude.includes(el)) return
+                    // if (el.getBoundingClientRect().height < 1) return
                     for (let x of el.childNodes){
                         if (x.nodeName == "#text"){
                             text = x.textContent.trim().toLowerCase()
@@ -366,8 +379,11 @@ async function getCarData(mode, append) {
                     // if (alwaysVinCheck) check.click()
                 }
                 for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
-                    e.scrollIntoView({block: "center"})
-                    let grandParent = e.parentElement.parentElement
+                    // let grandParent = e.parentElement.parentElement
+                    let grandParent = e.parentElement
+                    while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement
+                    if (el.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
+                    else grandParent.scrollIntoView({block: "center"})
                     grandParent.style.border = "solid red 2px"
                     await new Promise(resolve => setTimeout(resolve, 1000))
                     grandParent.style.border = ""
@@ -428,7 +444,7 @@ async function blackListLink(link, tab){
     let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
     await chrome.scripting.executeScript({target: { tabId: tab.id},func: (thisSelector, link)=>{
-        document.querySelector(`${thisSelector}:has(a[href^="${link}"])`).remove()
+        document.querySelector(`${thisSelector}:has(a[href*="${link}"])`).remove()
     }, args:[thisSelector.carSelector, cleanLink]})
 }
 

@@ -9,6 +9,7 @@
         odometerSelector: string;
         priceSelector: string;
         carSelector: string; // For multiple listings
+        excludeSelector?: string
     }
 
     // Default presets
@@ -220,7 +221,11 @@
             <input type="text" title="Year Selector" placeholder="Year Selector" bind:value={config.yearSelector} />
             <input type="text" title="Odometer Selector" placeholder="Odometer Selector" bind:value={config.odometerSelector} />
             <input type="text" title="Price Selector" placeholder="Price Selector" bind:value={config.priceSelector} />
-            <button class="remove-btn" onclick={() => removeSite(config.id)}>Remove</button>
+            <button class="remove-btn" onclick={() => removeSite(config.id)} oncontextmenu={(e) => {
+                e.preventDefault()
+                const result = prompt("excludeSelector", config.excludeSelector)
+                config.excludeSelector = result === null ? undefined : result
+            }}>Remove</button>
         </div>
     {/each}
 
