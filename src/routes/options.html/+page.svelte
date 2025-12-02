@@ -57,6 +57,12 @@
         if (result.alwaysSort) alwaysSort = result.alwaysSort
         result = await chrome.storage.local.get('blackList')
         if (result.blackList) blackList = result.blackList
+        document.onkeydown = (e) => {
+            if (e.key == "s" && e.ctrlKey){
+                e.preventDefault()
+                saveSettings()
+            }
+        }
     });
 
     function saveSettings() {
@@ -193,6 +199,7 @@
         <!-- <label><span>Always VinCheck Single?</span><input type="checkbox" bind:checked={alwaysVinCheck}></label> -->
         <label><span>Always sort Multiple?</span><input type="checkbox" bind:checked={alwaysSort}></label>
         <button style="width: 10em;" onclick={() => (confirm("Are you sure you want to clear blackList?")) ? blackList = {} : ''}>Clear Blacklist</button>
+        <button style="width: 10em;" onclick={() => {chrome.storage.local.remove('scrapedMultiple'); chrome.storage.sync.remove("scrapedSingle")}}>Clear Scraped</button>
     </div>
 
     <hr />

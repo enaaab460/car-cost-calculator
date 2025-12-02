@@ -68,15 +68,13 @@
         if (result.selectedCarLife) life = result.selectedCarLife;
         if (result.currentyear) currentyear = result.currentyear;
 
-        if (result.scrapedSingle){
-            const scraped = result.scrapedSingle;
-            if (scraped){
-                year = scraped.year - 2000;
-                odometer = scraped.odometer;
-                price = scraped.price / 1000;
-            }
+        if (result.scrapedSingle && result.scrapedSingle.year){
+            console.debug(result.scrapedSingle)
+            year = result.scrapedSingle.year - 2000;
+            odometer = result.scrapedSingle.odometer / 1000;
+            price = result.scrapedSingle.price / 1000;
             runCalculation()
-        } else if (name){
+        } else if (cost && life){
             drawDepreciationChart()
         }
         let resultLocal = await chrome.storage.local.get(['scrapedMultiple'])
@@ -111,7 +109,7 @@
             clearSelectedCar()
             return;
         }
-        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple']);
+        chrome.storage.local.remove(['scrapedMultiple']);
         resetResult()
         const lowerCaseName = name.toLowerCase();
         const matchingPreset = carPresets.find(p => p.name.toLowerCase() === lowerCaseName);
@@ -355,7 +353,7 @@
         let brand = split[0].toLowerCase()
         let cname = split[1].toLowerCase()
         let kbb = `https://www.kbb.com/${brand}/${cname}/${year+2000}/styles/?intent=buy-used`
-        if (trim){
+        if (split.length > 2 && trim){
             let trim = split.slice(2).join("-").toLowerCase()
             kbb = `https://www.kbb.com/${brand}/${cname}/${year+2000}/${trim}/?condition=good&intent=buy-used&pricetype=private-party`
         }
@@ -374,7 +372,7 @@
     }
     
     function resetResult(){
-        chrome.storage.local.remove("scrapedSingle")
+        chrome.storage.sync.remove("scrapedSingle")
         resultText = ""
         if (depreciationCanvas) {
             depreciationCanvas.style.height = '0'
@@ -429,35 +427,34 @@
         <div><label><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
         <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
-    {#if (year || odometer)}
+    {#if (year != null || odometer != null)}
         {@const spLen = name.split(" ").length}
         <div class="mb-1">
             <button onclick={runCalculation}>Calculate</button>
             {#if spLen > 1}
-                <button onclick={()=>kbb(false)}>KBB</button>
-                {#if spLen > 2}
-                    <button onclick={()=>kbb(true)}>+Trim</button>
-                {/if}
+                <button onclick={()=>kbb(false)} oncontextmenu={()=>kbb(true)}>KBB</button>
                 <button onclick={edmunds}>Edmunds</button>
             {/if}
         </div>
-        <div bind:this={resultElement} 
-            style:color={
-                (price) ? (
-                    (price*1000 <= fairPrice * 1 / 2) ? "yellow" : 
-                    (price*1000 <= afHaggle) ? "green" :
-                    (price*1000 <= fairPrice) ? "cyan" :
-                    (price*1000 <= beHaggle) ? "purple" :
-                    (price*1000 <= fairPrice * 3 / 2) ? "red" :
-                    "saddlebrown"
-                ) : "black"
-            }
-            style:textDecoration = { (old > life) ? "line-through" : (old / life > 2/4) ? "underline" : ""};
-            style:fontStyle = {(old / life < 1 / 4) ? "italic" : ""}
-            class="mb-1" style:background-color = "grey" style:padding = {resultText ? "0.5em" : ""}
-        >
-            {@html resultText}
-        </div>
+        {#if resultText}
+            <div bind:this={resultElement} 
+                style:color={
+                    (price) ? (
+                        (price*1000 <= fairPrice * 1 / 2) ? "yellow" : 
+                        (price*1000 <= afHaggle) ? "green" :
+                        (price*1000 <= fairPrice) ? "cyan" :
+                        (price*1000 <= beHaggle) ? "purple" :
+                        (price*1000 <= fairPrice * 3 / 2) ? "red" :
+                        "saddlebrown"
+                    ) : "black"
+                }
+                style:textDecoration = { (old > life) ? "line-through" : (old / life > 2/4) ? "underline" : ""};
+                style:fontStyle = {(old / life < 1 / 4) ? "italic" : ""}
+                style:padding ="0.5em" class="mb-1" 
+            >
+                {@html resultText}
+            </div>
+        {/if}
     {/if}
     <div class="mb-1">
         {#if singleExist}
@@ -466,8 +463,8 @@
                 console.log(res)
                 if (res){
                     year = res.year - 2000
-                    odometer = res.odometer
-                    price = res.price
+                    odometer = res.odometer / 1000
+                    price = res.price / 1000
                     resetResult()
                     runCalculation()
                 }
@@ -481,8 +478,13 @@
             <button onclick={()=>chrome.runtime.sendMessage("sort-cars")}>Sort</button>
         {/if}
     </div>
-    {#if !(year || odometer)}
+    {#if !(year != null || odometer != null)}
         <div>
+            {#if cost && life}
+                <div>
+                    <button onclick={drawDepreciationChart}>Draw Depreciation</button>
+                </div>
+            {/if}
             <span>Please fill the fields to calculate or use the quick actions</span>
         </div>
     {/if}
