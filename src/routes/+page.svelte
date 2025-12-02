@@ -41,7 +41,7 @@
     let beHaggle = $state(0)
     let afHaggle = $state(0)
 
-    let depreciationChart: Chart | null = null;
+    let depreciationChart: Chart | null = $state(null);
     let depreciationCanvas = $state<HTMLCanvasElement>()
     let regressionChart: Chart | null = null;
     let regressionCanvas = $state<HTMLCanvasElement>()
@@ -427,6 +427,11 @@
         <div><label><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
         <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
+    {#if cost && life && !depreciationChart?.canvas}
+        <div class="mb-1">
+            <button onclick={drawDepreciationChart}>Draw Depreciation</button>
+        </div>
+    {/if}
     {#if (year != null || odometer != null)}
         {@const spLen = name.split(" ").length}
         <div class="mb-1">
@@ -480,11 +485,6 @@
     </div>
     {#if !(year != null || odometer != null)}
         <div>
-            {#if cost && life}
-                <div>
-                    <button onclick={drawDepreciationChart}>Draw Depreciation</button>
-                </div>
-            {/if}
             <span>Please fill the fields to calculate or use the quick actions</span>
         </div>
     {/if}
