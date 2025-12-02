@@ -353,7 +353,7 @@
         let brand = split[0].toLowerCase()
         let cname = split[1].toLowerCase()
         let kbb = `https://www.kbb.com/${brand}/${cname}/${year+2000}/styles/?intent=buy-used`
-        if (trim){
+        if (split.length > 2 && trim){
             let trim = split.slice(2).join("-").toLowerCase()
             kbb = `https://www.kbb.com/${brand}/${cname}/${year+2000}/${trim}/?condition=good&intent=buy-used&pricetype=private-party`
         }
@@ -432,10 +432,7 @@
         <div class="mb-1">
             <button onclick={runCalculation}>Calculate</button>
             {#if spLen > 1}
-                <button onclick={()=>kbb(false)}>KBB</button>
-                {#if spLen > 2}
-                    <button onclick={()=>kbb(true)}>+Trim</button>
-                {/if}
+                <button onclick={()=>kbb(false)} oncontextmenu={()=>kbb(true)}>KBB</button>
                 <button onclick={edmunds}>Edmunds</button>
             {/if}
         </div>
@@ -483,6 +480,11 @@
     </div>
     {#if !(year != null || odometer != null)}
         <div>
+            {#if cost && life}
+                <div>
+                    <button onclick={drawDepreciationChart}>Draw Depreciation</button>
+                </div>
+            {/if}
             <span>Please fill the fields to calculate or use the quick actions</span>
         </div>
     {/if}
