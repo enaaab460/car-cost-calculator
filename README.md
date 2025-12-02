@@ -14,9 +14,9 @@ where life is assumed to be between 10 and 20 years, at 13.5k miles a year (can 
 
 ## Quick notes 
 
-For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank and Google don't play nice together.
+For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank and Google don't play nice together. It can be sideloaded from the chrome branch.
 
-Extension made with miles and american websites in mind, but kilometers and other websites were retrofitted but not extensively tested. It was also made with cars beyond the year 2000 but support for 2000 and early was retrofitted but not extensively tested.
+Extension made with miles and american websites in mind, but kilometers and other websites were retrofitted but not extensively tested. It was also made with cars beyond the year 2000 but support for 2000 and earlier was retrofitted but not extensively tested.
 
 Extension comes preloaded with some US websites, with the option to support more website using css selectors.You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. 
 
@@ -32,7 +32,7 @@ Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years bef
 
 ## Explanation of price style
 
-* yellow = >50% below fair price -> just downpayment / need extensive repairs / branded title / project car
+* yellow = >50% below fair price -> just downpayment / need extensive repairs / branded title / project car / unicorn
 
 * green = below haggled percent (15% by default) from fair price -> many have branded title (in my experience) but some might not (best option if mechanically sound)
 
@@ -50,7 +50,7 @@ Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years bef
 
 * underlined = second half of life, very slow depreciation, running but might need major repairs depending on model and use, possibly >1 generation old.
 
-* crossed-out = exceeded its expected life, each day is a gift, wheels might fall off tomorrow.
+* crossed-out = exceeded its expected life, wheels might fall off tomorrow. Depending on the brand, it might be in "good" shape, but expensive to repair (relative to actual car value).
 
 15% default haggle is almost too much, but it increases the range of cyan and purple. It can be changed in the settings. Not reaching the fair price does not necessarily mean a bad deal. It is all relative to your car market. KBB can be used to verify the fair price for a particular model, trim, year, and mileage, but many think that KBB prices are too optimistic (at the time of writing this). 
 
@@ -62,6 +62,8 @@ Allows plotting where the car stands relative to the depreciation curve, and pri
 The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the service chosen in the settings. 
 
 If the website is not registered, it will be replaced by a `Red Flags` button that only checks for red flags.
+
+The default css selector of single mode is `body`, which works fine for the majority of websites. If you are getting a lot of false positives for red flags, you might choose a more specific css selector that contains both the essential listing details (year, odometer, price) and description (accidents, title, ...). If there is no single element that contains them both, you can use the css selectors of both elements joined by a comma (eg, cars.com single mode css selector does this: `.basics-content-wrapper,.listing-overview`). If the essential listing details are not in single (larger) element, the operation will fail. This might be finicky and you might end up using `body` in the end.
 
 ## Multiple mode (Alt-W)
 Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
@@ -117,9 +119,11 @@ https://carconfections.com/reliability-resale-value/
 
 https://www.youtube.com/@TheCarCareNutReviews
 
+https://caredge.com/guides/fastest-and-slowest-selling-cars-2025
+
 # Disclaimers (might be superfluous)
 
-Since the extension reads the current tab to skim its data for both single and multiple, it is inherently risky to use on a browser where sensitive data is accesssed (eg, banking, sensitive work, ...). If you are already comfortable with ad-blockers and screen-readers, or use any major social network on the same browser, this disclaimer is meaningless. No data is sent back to any back-end related to me. I have used the minimum number of dependancies I can, and yet I can not vouch for them personally. I can only vouch for what I wrote.
+Since the extension reads the current tab to skim its data for both single and multiple, it is inherently risky to use on a browser where sensitive data is accesssed (eg, banking, sensitive work, ...). If you are already comfortable with ad-blockers and screen-readers, or use any major social network on the same browser, this disclaimer is meaningless. No data is sent back to any back-end related to me. I have used the minimum number of dependancies I can, and yet I can not vouch for them personally. I can only vouch for what I wrote. NPM supply chain attacks not rare enough.
 
 This is the first browser extension I wrote. I have some experience in Svelte and JS, and have programmed for many years. But it is not my day job, so not all best practices were followed.
 
@@ -137,6 +141,8 @@ extract the zip file, navigate to `about:debugging#/runtime/this-firefox` in fir
 
 ## from source:
 run `npm install` then `npm run build` in root directory, then navigate to `about:debugging#/runtime/this-firefox` in firefox, temporarily load addon, select `manifest.json` from `build/firefox`
+
+PRs to acheive TODO.md would be greatly appreciated.
 
 # Acknowledgements / Dependencies:
 
