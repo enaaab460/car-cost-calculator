@@ -194,7 +194,7 @@ async function getCarData(mode, append) {
                             const odometerMatch = odText.replaceAll(',', '').match(/(\d+)(\.\d+)?k?( (mi|km))?/);
                             if (odometerMatch) {
                                 odometer = parseInt(odometerMatch[1]);
-                                if (!odText.includes("k")) odometer = odometer / 1000;
+                                if (odText.search(/k(?!m)/) != -1) odometer = odometer * 1000;
                             }
                         }
                         var old = ((currentyear - year) + odometer / yearlyOdometer) / 2;
@@ -221,7 +221,8 @@ async function getCarData(mode, append) {
                             `${old.toFixed(1)} y/o (${Math.round(old / life * 100)}% of life)`;
                         if (mode == "multiple") {
                             el.title = priceElement.title
-                            retVal.push({name: yearElement.textContent.trim(), link: el.querySelector("a").href ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer * 1000, res})
+                            let thisCar = {name: yearElement.textContent.trim(), link: el.querySelector("a").href ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer, res}
+                            retVal.push(thisCar)
                         }else retVal = { year, odometer, price }
                         el.diffNum = price - res
                         priceElement.append(tempEl);
@@ -233,7 +234,7 @@ async function getCarData(mode, append) {
                 console.timeEnd("Price")
                 return retVal
             },
-            args: [mode, thisSelector, blackList[domain], currentyear, yearlyOdometer, life, cost * 1000, haggle]
+            args: [mode, thisSelector, blackList[domain], currentyear, yearlyOdometer * 1000, life, cost * 1000, haggle]
         })
         console.log(results)
         if (results && results[0]) {
@@ -303,7 +304,7 @@ async function getCarData(mode, append) {
                     }
                 }
                 console.time("redFlags")
-                checkChildren(document.querySelector(thisSelector.carSelector))
+                for (let x of document.querySelectorAll(thisSelector.carSelector)) checkChildren(x)
                 console.timeEnd("redFlags")
                 var myStats = document.querySelector('#ext-stats')
                 if (!myStats) {
