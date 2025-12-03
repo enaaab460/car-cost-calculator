@@ -1,12 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-
-    interface CarPreset {
-        id: number;
-        name: string;
-        msrp: number;
-        life: number;
-    }
+    import type {CarPreset} from "$lib"
 
     let carPresets = $state<CarPreset[]>([]);
     let statusText = $state('');
@@ -14,12 +8,17 @@
 
     onMount(() => {
         // Load saved presets when the component mounts
-        chrome.storage.sync.get(['carPresets','typicalLife']).then((result) => {
+        chrome.storage.sync.get('carPresets').then((result: any) => {
             if (result.carPresets) {
                 carPresets = result.carPresets;
             }
-            if (result.typicalLife) typicalLife = result.typicalLife;
         });
+        document.onkeydown = (e) => {
+            if (e.key == "s" && e.ctrlKey){
+                e.preventDefault()
+                savePresets()
+            }
+        }
     });
 
     function savePresets() {

@@ -2,13 +2,7 @@
     import { Chart } from "chart.js/auto"
     import type { ChartConfiguration } from "chart.js/auto"
 	import { onMount } from "svelte";
-
-    interface CarPreset {
-        id: number;
-        name: string;
-        msrp: number;
-        life: number;
-    }
+    import type { SelectorConfig, CarPreset } from "$lib";
 
     interface CarPoint {
         age: number;
@@ -23,15 +17,12 @@
     }
 
     let carPresets = $state<CarPreset[]>([]);
-    let yearlyOdometer = $state(12)
-    let haggle = $state(15)
-    let currentyear = $state(new Date().getFullYear())
-    if (new Date().getMonth() + 1 > 8){
-        currentyear++
-    }
+    let yearlyOdometer = $state(0)
+    let haggle = $state(0)
+    let currentyear = $state(0)
 
     let cost = $state(0)
-    let life = $state(15)
+    let typicalLife = $state(0)
     let old = $state(0)
     let year: null | number = $state(null)
     let odometer: null | number = $state(null)
@@ -41,7 +32,7 @@
     let beHaggle = $state(0)
     let afHaggle = $state(0)
 
-    let depreciationChart: Chart | null = null;
+    let depreciationChart: Chart | null = $state(null);
     let depreciationCanvas = $state<HTMLCanvasElement>()
     let regressionChart: Chart | null = null;
     let regressionCanvas = $state<HTMLCanvasElement>()
@@ -50,78 +41,77 @@
     // let scrapedMultiple = $state<CarPoint[]>([])
 
     // let domain = $state("")
+    let tab: chrome.tabs.Tab
     let singleExist = $state(false)
     let multipleExist = $state(false)
     let resultElement = $state<HTMLElement>()
     // let alwaysSort = $state(false)
 
     onMount(async () => {
-        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'selectorConfigs', 'alwaysSort'];
-        let result = await chrome.storage.sync.get(keys)
+        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle','selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'selectorConfigs', 'alwaysSort'];
+        const result = await chrome.storage.sync.get(keys) as any
+        if (!result) return
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         else openOptionsPage()
         if (result.haggle) haggle = result.haggle;
-        if (result.typicalLife) life = result.typicalLife;
+        if (result.typicalLife) typicalLife = result.typicalLife;
         if (result.carPresets) carPresets = result.carPresets;
         if (result.selectedCarName) name = result.selectedCarName;
         if (result.selectedCarCost) cost = result.selectedCarCost;
-        if (result.selectedCarLife) life = result.selectedCarLife;
+        if (result.selectedCarLife) typicalLife = result.selectedCarLife;
         if (result.currentyear) currentyear = result.currentyear;
 
-        if (result.scrapedSingle){
-            const scraped = result.scrapedSingle;
-            if (scraped){
-                year = scraped.year - 2000;
-                odometer = scraped.odometer;
-                price = scraped.price / 1000;
-            }
+        if (result.scrapedSingle && result.scrapedSingle.year){
+            console.debug(result.scrapedSingle)
+            year = result.scrapedSingle.year - 2000;
+            odometer = result.scrapedSingle.odometer / 1000;
+            price = result.scrapedSingle.price / 1000;
             runCalculation()
-        } else if (name){
+        } else if (cost && typicalLife){
             drawDepreciationChart()
         }
-        let resultLocal = await chrome.storage.local.get(['scrapedMultiple'])
-        if (resultLocal.scrapedMultiple){
+        const resultLocal = await chrome.storage.local.get('scrapedMultiple') as any
+        if (resultLocal.scrapedMultiple && resultLocal.scrapedMultiple[0]?.price){
             drawRegressionChart(resultLocal.scrapedMultiple)
         }
 
-        var tab = await chrome.tabs.query({active: true, currentWindow: true})
-        if (!tab[0]) return
-        let tabUrl = tab[0].url!
+        [tab] = await chrome.tabs.query({active: true, currentWindow: true})
+        if (!tab) return
+        let tabUrl = tab.url!
         if (result.selectorConfigs){
             singleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'single') != null
             multipleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'multiple') != null
         }
-            // chrome.storage.sync.remove('scrapedSingle');
         });
 
     function clearSelectedCar(){
         name = ''
-        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple']);
-        chrome.storage.sync.remove('selectedCarName')
+        chrome.storage.local.remove('scrapedMultiple');
+        chrome.storage.sync.remove(['selectedCarName','scrapedSingle'])
         resetResult()
     }
 
     function onCarChange() {
-        life = 0
+        typicalLife = 0
         cost = 0
-        price = 0
         year = null
         odometer = null
+        price = null
         if (!name) {
             clearSelectedCar()
             return;
         }
-        chrome.storage.local.remove(['scrapedSingle','scrapedMultiple']);
+        chrome.storage.local.remove(['scrapedMultiple']);
         resetResult()
         const lowerCaseName = name.toLowerCase();
         const matchingPreset = carPresets.find(p => p.name.toLowerCase() === lowerCaseName);
 
         if (matchingPreset) {
-            life = matchingPreset.life;
+            typicalLife = matchingPreset.life;
             if (matchingPreset.msrp > 0) {
                 cost = matchingPreset.msrp;
             }
-            chrome.storage.sync.set({ selectedCarName: name, selectedCarCost: cost, selectedCarLife: life });
+            chrome.storage.sync.set({ selectedCarName: name, selectedCarCost: cost, selectedCarLife: typicalLife });
         } else {
             chrome.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
         }
@@ -144,12 +134,12 @@
             old = (old + odometer/yearlyOdometer) / 2
         } else return
 
-        let res = cost * 1000 * Math.pow(1 - 2/life, old)
+        let res = cost * 1000 * Math.pow(1 - 2/typicalLife, old)
         fairPrice = res
         beHaggle = Math.round(res/(1-haggle/100))
         afHaggle = Math.round(res*(1-haggle/100))
         resultText = `${res.toFixed(0)} (${Math.round(res/1000/cost*100)}% of new)`
-            + `<br> ${old.toFixed(1)} y/o (${(old/life*100).toFixed(0)}% of life)`
+            + `<br> ${old.toFixed(1)} y/o (${(old/typicalLife*100).toFixed(0)}% of life)`
         
         if (price && price > 0) resultText = `${price*1000 > res ? '+' : ''}${(price*1000 - res).toFixed(0)}`
         + `<br>${price*1000 > res ? '+' : ''}${((price*1000-res)/res*100).toFixed(0)}% (${(price/cost*100).toFixed(0)}% of new)`
@@ -163,30 +153,30 @@
             depreciationChart.destroy();
         }
         if (!depreciationCanvas) return
-        let xAxis = Array.from({ length: life+1 }, (_, i) => i)
+        let xAxis = Array.from({ length: typicalLife+1 }, (_, i) => i)
         let chartOptions: ChartConfiguration = {
             type:"line",
             data:{
                 labels: xAxis,
                 datasets:[{
                     label: "half under",
-                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/life, x)* 0.5)),
+                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/typicalLife, x)* 0.5)),
                     borderColor: "yellow",
                 },{
                     label: "after haggle",
-                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/life, x)*(100-haggle)/100)),
+                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/typicalLife, x)*(100-haggle)/100)),
                     borderColor: "green",
                 },{
                     label: "fair price",
-                    data: xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/life, x))),
+                    data: xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/typicalLife, x))),
                     borderColor: "cyan",
                 },{
                     label: "before haggling",
-                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/life, x)/(100-haggle)*100)),
+                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/typicalLife, x)/(100-haggle)*100)),
                     borderColor: "red",
                 },{
                     label: "half over",
-                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/life, x)* 1.5)),
+                    data:xAxis.map((x: number) => Math.round(cost * 1000 * Math.pow(1 - 2/typicalLife, x)* 1.5)),
                     borderColor: "saddlebrown",
                 }]
             },
@@ -199,7 +189,7 @@
                     x: {
                         title: { display: true, text: 'Age (years)' },
                         type: "linear",
-                        max: life
+                        max: typicalLife
                     }
                 },
                 plugins:{
@@ -273,8 +263,9 @@
         if (regressionChart) {
             regressionChart.destroy();
         }
-        if (!regressionCanvas) return
+        if (!regressionCanvas || !data) return
 
+        console.log(data)
         let scatterData = data.map((x: CarPoint) => ({ x: x.age, y: x.price }))
 
         const csvHeader =  [...Object.getOwnPropertyNames(data[0])].join(',') + '\n';
@@ -290,9 +281,9 @@
         const regression = calculateRegressionLine(scatterData);
         const { m, b, trendlineData } = regression;
         
-        var optTrendline = [{x: 0, y: cost * 1000},{x: life, y: cost * 1000 * Math.pow(1 - 2/life, life)}]
-        let xAxis = Array.from({ length: life+1 }, (_, i) => i)
-        let correct = xAxis.map(x => ({x: x, y: cost * 1000 * Math.pow(1 - 2/life, x)}))
+        // var optTrendline = [{x: 0, y: cost * 1000},{x: life, y: cost * 1000 * Math.pow(1 - 2/life, life)}]
+        let xAxis = Array.from({ length: typicalLife+1 }, (_, i) => i)
+        let correct = xAxis.map(x => ({x: x, y: cost * 1000 * Math.pow(1 - 2/typicalLife, x)}))
         const { m: om, b: ob, trendlineData: otl } = calculateRegressionLine(correct)
         const config = {
             type: 'scatter',
@@ -329,7 +320,7 @@
                         title: { display: true, text: 'Age (years)' },
                         type: 'linear',
                         position: 'bottom',
-                        suggestedMax: life
+                        suggestedMax: typicalLife
                     },
                     y: {
                         title: { display: true, text: 'Price' },
@@ -355,7 +346,7 @@
         let brand = split[0].toLowerCase()
         let cname = split[1].toLowerCase()
         let kbb = `https://www.kbb.com/${brand}/${cname}/${year+2000}/styles/?intent=buy-used`
-        if (trim){
+        if (split.length > 2 && trim){
             let trim = split.slice(2).join("-").toLowerCase()
             kbb = `https://www.kbb.com/${brand}/${cname}/${year+2000}/${trim}/?condition=good&intent=buy-used&pricetype=private-party`
         }
@@ -373,8 +364,8 @@
         window.open(edmunds)
     }
     
-    function resetResult(){
-        chrome.storage.local.remove("scrapedSingle")
+    async function resetResult(){
+        await chrome.storage.sync.remove("scrapedSingle")
         resultText = ""
         if (depreciationCanvas) {
             depreciationCanvas.style.height = '0'
@@ -394,10 +385,10 @@
         year = null
         odometer = null
         price = null
-        resetResult()
+        // resetResult()
         var res:CarPoint[]
-        if (append) res = await chrome.runtime.sendMessage("get-car-data-multiple-append")
-        else res = await chrome.runtime.sendMessage("get-car-data-multiple")
+        if (append) res = await chrome.runtime.sendMessage(["get-car-data-multiple-append", tab])
+        else res = await chrome.runtime.sendMessage(["get-car-data-multiple", tab])
         if (res){
             drawDepreciationChart()
             drawRegressionChart(res)
@@ -421,67 +412,70 @@
             </label>
         </div>
         <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarCost":cost})}></label></div>
-        <div><label><span>Expected Lifespan</span><input type="number" bind:value={life} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":life})}></label></div>
+        <div><label title={`${typicalLife*yearlyOdometer}k`}><span>Expected Lifespan</span><input type="number" bind:value={typicalLife} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":typicalLife})}></label></div>
     </div>
     <div class="block">
         <!-- svelte-ignore a11y_autofocus -->
-        <div><label><span>Model Year</span><input type="number" autofocus bind:value={year} oninput={resetResult} oncontextmenu={(e)=> {e.preventDefault(); year = currentyear - 2000}}></label></div>
-        <div><label><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
+        <div><label title={year ? String(currentyear - year - 2000) + "y" : ""}><span>Model Year</span><input type="number" autofocus bind:value={year} oninput={resetResult} oncontextmenu={(e)=> {e.preventDefault(); year = currentyear - 2000}}></label></div>
+        <div><label title={odometer ? (odometer/yearlyOdometer).toFixed(1) + "y" : ""}><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
         <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
-    {#if (year || odometer)}
+    {#if cost && typicalLife && !depreciationChart?.canvas}
+        <div class="mb-1">
+            <button onclick={drawDepreciationChart}>Draw Depreciation</button>
+        </div>
+    {/if}
+    {#if (year != null || odometer != null)}
         {@const spLen = name.split(" ").length}
         <div class="mb-1">
             <button onclick={runCalculation}>Calculate</button>
             {#if spLen > 1}
-                <button onclick={()=>kbb(false)}>KBB</button>
-                {#if spLen > 2}
-                    <button onclick={()=>kbb(true)}>+Trim</button>
-                {/if}
+                <button onclick={()=>kbb(false)} oncontextmenu={(e)=>{e.preventDefault();kbb(true)}}>KBB</button>
                 <button onclick={edmunds}>Edmunds</button>
             {/if}
         </div>
-        <div bind:this={resultElement} 
-            style:color={
-                (price) ? (
-                    (price*1000 <= fairPrice * 1 / 2) ? "yellow" : 
-                    (price*1000 <= afHaggle) ? "green" :
-                    (price*1000 <= fairPrice) ? "cyan" :
-                    (price*1000 <= beHaggle) ? "purple" :
-                    (price*1000 <= fairPrice * 3 / 2) ? "red" :
-                    "saddlebrown"
-                ) : "black"
-            }
-            style:textDecoration = { (old > life) ? "line-through" : (old / life > 2/4) ? "underline" : ""};
-            style:fontStyle = {(old / life < 1 / 4) ? "italic" : ""}
-            class="mb-1" style:background-color = "grey" style:padding = {resultText ? "0.5em" : ""}
-        >
-            {@html resultText}
-        </div>
+        {#if resultText}
+            <div bind:this={resultElement} 
+                style:color={
+                    (price) ? (
+                        (price*1000 <= fairPrice * 1 / 2) ? "yellow" : 
+                        (price*1000 <= afHaggle) ? "green" :
+                        (price*1000 <= fairPrice) ? "cyan" :
+                        (price*1000 <= beHaggle) ? "purple" :
+                        (price*1000 <= fairPrice * 3 / 2) ? "red" :
+                        "saddlebrown"
+                    ) : "black"
+                }
+                style:textDecoration = { (old > typicalLife) ? "line-through" : (old / typicalLife > 2/4) ? "underline" : ""};
+                style:fontStyle = {(old / typicalLife < 1 / 4) ? "italic" : ""}
+                style:padding ="0.5em" class="mb-1" 
+            >
+                {@html resultText}
+            </div>
+        {/if}
     {/if}
     <div class="mb-1">
         {#if singleExist}
             <button onclick={async ()=> {
-                let res = await chrome.runtime.sendMessage("get-car-data-single")
-                console.log(res)
+                // await resetResult()
+                let res = await chrome.runtime.sendMessage(["get-car-data-single", tab])
                 if (res){
                     year = res.year - 2000
-                    odometer = res.odometer
-                    price = res.price
-                    resetResult()
+                    odometer = res.odometer / 1000
+                    price = res.price / 1000
                     runCalculation()
                 }
             }}>Single Car</button>
         {:else}
-            <button onclick={()=> chrome.runtime.sendMessage("get-red-flags")}>Red Flags</button>
+            <button onclick={()=> chrome.runtime.sendMessage(["get-red-flags", tab])}>Red Flags</button>
         {/if}
         {#if multipleExist}
             <button onclick={async () => await scrapeMultiple(false)}
             oncontextmenu={async (e)=> {e.preventDefault(); await scrapeMultiple(true)}}>Multiple Cars</button>
-            <button onclick={()=>chrome.runtime.sendMessage("sort-cars")}>Sort</button>
+            <button onclick={()=>chrome.runtime.sendMessage(["sort-cars", tab])}>Sort</button>
         {/if}
     </div>
-    {#if !(year || odometer)}
+    {#if !(year != null || odometer != null)}
         <div>
             <span>Please fill the fields to calculate or use the quick actions</span>
         </div>

@@ -1,20 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-
-    interface SelectorConfig {
-        id: number;
-        domain: string;
-        calculationMode: 'single' | 'multiple';
-        yearSelector: string;
-        odometerSelector: string;
-        priceSelector: string;
-        carSelector: string; // For multiple listings
-    }
+    import type { SelectorConfig } from "$lib";
 
     // Default presets
     let yearlyOdometer = $state(0);
     let haggle = $state(0);
     let typicalLife = $state(0);
+    let zipcode = $state(0)
 
     // Website-specific selector configurations
     let selectorConfigs = $state<SelectorConfig[]>([]);
@@ -34,7 +26,7 @@
 
     onMount(async () => {
         // Load saved settings when the component mounts
-        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort'])
+        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort','zipcode']) as any
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) typicalLife = result.typicalLife;
@@ -55,8 +47,15 @@
         if (result.vinProvider) vinProvider = result.vinProvider
         if (result.alwaysVinCheck) alwaysVinCheck = result.alwaysVinCheck
         if (result.alwaysSort) alwaysSort = result.alwaysSort
+        if (result.zipcode) zipcode = result.zipcode
         result = await chrome.storage.local.get('blackList')
         if (result.blackList) blackList = result.blackList
+        document.onkeydown = (e) => {
+            if (e.key == "s" && e.ctrlKey){
+                e.preventDefault()
+                saveSettings()
+            }
+        }
     });
 
     function saveSettings() {
@@ -77,6 +76,7 @@
             vinProvider,
             alwaysVinCheck,
             alwaysSort,
+            zipcode,
             selectorConfigs
         }
         chrome.storage.sync.set($state.snapshot(toSave))
@@ -112,6 +112,7 @@
             currentyear,
             redFlags,
             vinProvider,
+            zipcode,
             alwaysVinCheck,
             alwaysSort
         }
@@ -155,6 +156,7 @@
                             vinProvider = settings.vinProvider;
                             alwaysVinCheck = settings.alwaysVinCheck;
                             alwaysSort = settings.alwaysSort;
+                            zipcode = settings.zipcode;
                         }
                         let selectorConfigs = result.selectorConfigs
                         let carPresets = result.carPresets
@@ -188,11 +190,13 @@
         <label><span>Default Yearly Odometer (thou)</span><input type="number" bind:value={yearlyOdometer}></label>
         <label><span>Default Haggle Down %</span><input type="number" bind:value={haggle}></label>
         <label><span>Default Expected Lifespan</span><input type="number" bind:value={typicalLife}></label>
+        <label><span>Zipcode</span><input type="number" bind:value={zipcode}></label>
         <label><span style:margin="auto 0">Red Flags (comma-separated)</span><textarea bind:value={redFlags}></textarea></label>
         <label><span>VinCheck site (%s for VIN)</span><input bind:value={vinProvider}></label>
         <!-- <label><span>Always VinCheck Single?</span><input type="checkbox" bind:checked={alwaysVinCheck}></label> -->
         <label><span>Always sort Multiple?</span><input type="checkbox" bind:checked={alwaysSort}></label>
         <button style="width: 10em;" onclick={() => (confirm("Are you sure you want to clear blackList?")) ? blackList = {} : ''}>Clear Blacklist</button>
+        <button style="width: 10em;" onclick={() => {chrome.storage.local.remove('scrapedMultiple'); chrome.storage.sync.remove("scrapedSingle")}}>Clear Scraped</button>
     </div>
 
     <hr />
@@ -213,7 +217,11 @@
             <input type="text" title="Year Selector" placeholder="Year Selector" bind:value={config.yearSelector} />
             <input type="text" title="Odometer Selector" placeholder="Odometer Selector" bind:value={config.odometerSelector} />
             <input type="text" title="Price Selector" placeholder="Price Selector" bind:value={config.priceSelector} />
-            <button class="remove-btn" onclick={() => removeSite(config.id)}>Remove</button>
+            <button class="remove-btn" onclick={() => removeSite(config.id)} oncontextmenu={(e) => {
+                e.preventDefault()
+                const result = prompt("excludeSelector", config.excludeSelector)
+                config.excludeSelector = result === null ? undefined : result
+            }}>Remove</button>
         </div>
     {/each}
 
