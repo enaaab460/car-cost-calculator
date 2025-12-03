@@ -68,20 +68,19 @@ chrome.commands.onCommand.addListener((command, tab) => {
     } 
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
-    chrome.tabs.query({active: true, currentWindow: true}).then(tabs => {
-        if (message === "get-car-data-single") {
-            sendResponse(getCarData('single', tabs[0]))
-        } else if (message === "get-red-flags") {
-            getCarData('red-flags', tabs[0])
-        } else if (message === "get-car-data-multiple") {
-            sendResponse(getCarData('multiple', tabs[0]))
-        } else if (message === "get-car-data-multiple-append") {
-            sendResponse(getCarData('multiple', tabs[0], true))
-        } else if (message === "sort-cars") {
-            sortCars(tabs[0])
-        }
-    })
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=>{
+    let [message, tab] = msg
+    if (message === "get-car-data-single") {
+        sendResponse(getCarData('single', tab))
+    } else if (message === "get-red-flags") {
+        getCarData('red-flags', tab)
+    } else if (message === "get-car-data-multiple") {
+        sendResponse(getCarData('multiple', tab))
+    } else if (message === "get-car-data-multiple-append") {
+        sendResponse(getCarData('multiple', tab, true))
+    } else if (message === "sort-cars") {
+        sortCars(tab)
+    }
     return true
 });
 

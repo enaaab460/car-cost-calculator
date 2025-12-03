@@ -41,6 +41,7 @@
     // let scrapedMultiple = $state<CarPoint[]>([])
 
     // let domain = $state("")
+    let tab: chrome.tabs.Tab
     let singleExist = $state(false)
     let multipleExist = $state(false)
     let resultElement = $state<HTMLElement>()
@@ -74,9 +75,9 @@
             drawRegressionChart(resultLocal.scrapedMultiple)
         }
 
-        var tab = await chrome.tabs.query({active: true, currentWindow: true})
-        if (!tab[0]) return
-        let tabUrl = tab[0].url!
+        [tab] = await chrome.tabs.query({active: true, currentWindow: true})
+        if (!tab) return
+        let tabUrl = tab.url!
         if (result.selectorConfigs){
             singleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'single') != null
             multipleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'multiple') != null
@@ -386,8 +387,8 @@
         price = null
         resetResult()
         var res:CarPoint[]
-        if (append) res = await chrome.runtime.sendMessage("get-car-data-multiple-append")
-        else res = await chrome.runtime.sendMessage("get-car-data-multiple")
+        if (append) res = await chrome.runtime.sendMessage(["get-car-data-multiple-append", tab])
+        else res = await chrome.runtime.sendMessage(["get-car-data-multiple", tab])
         if (res){
             drawDepreciationChart()
             drawRegressionChart(res)
@@ -456,8 +457,7 @@
     <div class="mb-1">
         {#if singleExist}
             <button onclick={async ()=> {
-                let res = await chrome.runtime.sendMessage("get-car-data-single")
-                console.log(res)
+                let res = await chrome.runtime.sendMessage(["get-car-data-single", tab])
                 if (res){
                     year = res.year - 2000
                     odometer = res.odometer / 1000
@@ -467,12 +467,12 @@
                 }
             }}>Single Car</button>
         {:else}
-            <button onclick={()=> chrome.runtime.sendMessage("get-red-flags")}>Red Flags</button>
+            <button onclick={()=> chrome.runtime.sendMessage(["get-red-flags", tab])}>Red Flags</button>
         {/if}
         {#if multipleExist}
             <button onclick={async () => await scrapeMultiple(false)}
             oncontextmenu={async (e)=> {e.preventDefault(); await scrapeMultiple(true)}}>Multiple Cars</button>
-            <button onclick={()=>chrome.runtime.sendMessage("sort-cars")}>Sort</button>
+            <button onclick={()=>chrome.runtime.sendMessage(["sort-cars", tab])}>Sort</button>
         {/if}
     </div>
     {#if !(year != null || odometer != null)}
