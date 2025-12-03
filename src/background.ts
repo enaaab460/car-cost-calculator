@@ -71,13 +71,13 @@ chrome.commands.onCommand.addListener((command, tab) => {
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=>{
     let [message, tab] = msg
     if (message === "get-car-data-single") {
-        sendResponse(getCarData('single', tab))
+        getCarData('single', tab).then(res => sendResponse(res))
     } else if (message === "get-red-flags") {
         getCarData('red-flags', tab)
     } else if (message === "get-car-data-multiple") {
-        sendResponse(getCarData('multiple', tab))
+        getCarData('multiple', tab).then(res => sendResponse(res))
     } else if (message === "get-car-data-multiple-append") {
-        sendResponse(getCarData('multiple', tab, true))
+        getCarData('multiple', tab, true).then(res => sendResponse(res))
     } else if (message === "sort-cars") {
         sortCars(tab)
     }
