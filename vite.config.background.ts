@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	build: {
-		outDir: 'build/firefox', 
+		outDir: 'build/chrome', 
 		emptyOutDir: false, 
 		minify: false,
 		rollupOptions: {
