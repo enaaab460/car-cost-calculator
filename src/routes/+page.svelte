@@ -48,7 +48,7 @@
     // let alwaysSort = $state(false)
 
     onMount(async () => {
-        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'selectorConfigs', 'alwaysSort'];
+        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle','selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'selectorConfigs', 'alwaysSort'];
         const result = await chrome.storage.sync.get(keys) as any
         if (!result) return
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
@@ -364,8 +364,8 @@
         window.open(edmunds)
     }
     
-    function resetResult(){
-        chrome.storage.sync.remove("scrapedSingle")
+    async function resetResult(){
+        await chrome.storage.sync.remove("scrapedSingle")
         resultText = ""
         if (depreciationCanvas) {
             depreciationCanvas.style.height = '0'
@@ -385,7 +385,7 @@
         year = null
         odometer = null
         price = null
-        resetResult()
+        // resetResult()
         var res:CarPoint[]
         if (append) res = await chrome.runtime.sendMessage(["get-car-data-multiple-append", tab])
         else res = await chrome.runtime.sendMessage(["get-car-data-multiple", tab])
@@ -416,8 +416,8 @@
     </div>
     <div class="block">
         <!-- svelte-ignore a11y_autofocus -->
-        <div><label><span>Model Year</span><input type="number" autofocus bind:value={year} oninput={resetResult} oncontextmenu={(e)=> {e.preventDefault(); year = currentyear - 2000}}></label></div>
-        <div><label><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
+        <div><label title={year ? String(currentyear - year - 2000) + "y" : ""}><span>Model Year</span><input type="number" autofocus bind:value={year} oninput={resetResult} oncontextmenu={(e)=> {e.preventDefault(); year = currentyear - 2000}}></label></div>
+        <div><label title={odometer ? (odometer/yearlyOdometer).toFixed(1) + "y" : ""}><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
         <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
     {#if cost && typicalLife && !depreciationChart?.canvas}
@@ -457,12 +457,12 @@
     <div class="mb-1">
         {#if singleExist}
             <button onclick={async ()=> {
+                // await resetResult()
                 let res = await chrome.runtime.sendMessage(["get-car-data-single", tab])
                 if (res){
                     year = res.year - 2000
                     odometer = res.odometer / 1000
                     price = res.price / 1000
-                    resetResult()
                     runCalculation()
                 }
             }}>Single Car</button>

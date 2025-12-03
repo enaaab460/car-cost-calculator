@@ -256,7 +256,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
             res = results[0].result
             if (res) {
                 if (mode === 'single'){
-                    chrome.storage.sync.set({ 'scrapedSingle': res });
+                    await chrome.storage.sync.set({'scrapedSingle': res });
                 } else {
                     if (append) {
                         let { scrapedMultiple } = await chrome.storage.local.get("scrapedMultiple") as { scrapedMultiple: ScrapedMultipleUnit[]}
@@ -265,7 +265,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             res = Array.from(new Map(res.map((item: ScrapedMultipleUnit) => [item.link, item])).values())
                         }
                     }
-                    let remCount = res.pop()
+                    let remCount = res.pop() as number
                     if (remCount > 0) {
                         chrome.notifications.create({
                             type: 'basic',
