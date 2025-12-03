@@ -11,7 +11,7 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"types": [
-			"chrome-types"
+			"@types/chrome"
 		]
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias

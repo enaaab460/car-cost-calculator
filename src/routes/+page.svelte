@@ -2,13 +2,7 @@
     import { Chart } from "chart.js/auto"
     import type { ChartConfiguration } from "chart.js/auto"
 	import { onMount } from "svelte";
-
-    interface CarPreset {
-        id: number;
-        name: string;
-        msrp: number;
-        life: number;
-    }
+    import type { SelectorConfig, CarPreset } from "$lib";
 
     interface CarPoint {
         age: number;
@@ -54,7 +48,8 @@
 
     onMount(async () => {
         const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle', 'scrapedMultiple', 'yearSelector', 'odometerSelector', 'modelSelector', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'selectorConfigs', 'alwaysSort'];
-        let result = await chrome.storage.sync.get(keys)
+        const result = await chrome.storage.sync.get(keys) as any
+        if (!result) return
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         else openOptionsPage()
         if (result.haggle) haggle = result.haggle;
@@ -74,7 +69,7 @@
         } else if (cost && typicalLife){
             drawDepreciationChart()
         }
-        let resultLocal = await chrome.storage.local.get('scrapedMultiple')
+        const resultLocal = await chrome.storage.local.get('scrapedMultiple') as any
         if (resultLocal.scrapedMultiple && resultLocal.scrapedMultiple[0]?.price){
             drawRegressionChart(resultLocal.scrapedMultiple)
         }
@@ -269,6 +264,7 @@
         }
         if (!regressionCanvas || !data) return
 
+        console.log(data)
         let scatterData = data.map((x: CarPoint) => ({ x: x.age, y: x.price }))
 
         const csvHeader =  [...Object.getOwnPropertyNames(data[0])].join(',') + '\n';

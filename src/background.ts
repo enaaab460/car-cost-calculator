@@ -1,4 +1,9 @@
-// static/background.js
+import type { SelectorConfig } from "$lib";
+type getCarDataModes = "single" | "multiple" | "red-flags"
+
+type BlackList = { [domain: string]: string[] };
+type ScrapedMultipleUnit = {name: string, link: string ,age: number, price: number, yearsAgo: number, odometer: number, res: number}
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "get-car-data-single",
@@ -38,76 +43,79 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "get-car-data-single") {
-    getCarData('single');
-  } else if (info.menuItemId === "get-red-flags") {
-    getCarData('red-flags');
-  } else if (info.menuItemId === "get-car-data-multiple") {
-    getCarData('multiple');
-  } else if (info.menuItemId === "sort-cars") {
-    sortCars()
-  } else if (info.menuItemId === "clear-black-list") {
-    clearBlackList(tab)
-  } else if (info.menuItemId === "black-list-listing"){
-    blackListLink(info.linkUrl, tab)
-  }
-});
-
-chrome.commands.onCommand.addListener((command) => {
-  if (command === "get-car-data-single") {
-    getCarData('single');
-  } else if (command === "get-car-data-multiple") {
-    getCarData('multiple');
-  } 
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
-    if (message === "get-car-data-single") {
-        sendResponse(getCarData('single'))
-    } else if (message === "get-red-flags") {
-        getCarData('red-flags')
-    } else if (message === "get-car-data-multiple") {
-        sendResponse(getCarData('multiple'))
-    } else if (message === "get-car-data-multiple-append") {
-        sendResponse(getCarData('multiple',true))
-    } else if (message === "sort-cars") {
-        sortCars()
+    if (!tab) return
+    if (info.menuItemId === "get-car-data-single") {
+        getCarData('single', tab);
+    } else if (info.menuItemId === "get-red-flags") {
+        getCarData('red-flags', tab);
+    } else if (info.menuItemId === "get-car-data-multiple") {
+        getCarData('multiple', tab);
+    } else if (info.menuItemId === "sort-cars") {
+        sortCars(tab)
+    } else if (info.menuItemId === "clear-black-list") {
+        clearBlackList(tab)
+    } else if (info.menuItemId === "black-list-listing" && info.linkUrl){
+        blackListLink(info.linkUrl, tab)
     }
 });
 
-async function getCarData(mode, append) {
-    var tab = (await chrome.tabs.query({active: true, currentWindow: true}))[0]
-    if (!tab) return
-    let tabId = tab.id
+chrome.commands.onCommand.addListener((command, tab) => {
+    if (!tab || !command) return
+    if (command === "get-car-data-single") {
+        getCarData('single', tab);
+    } else if (command === "get-car-data-multiple") {
+        getCarData('multiple', tab);
+    } 
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
+    chrome.tabs.query({active: true, currentWindow: true}).then(tabs => {
+        if (message === "get-car-data-single") {
+            sendResponse(getCarData('single', tabs[0]))
+        } else if (message === "get-red-flags") {
+            getCarData('red-flags', tabs[0])
+        } else if (message === "get-car-data-multiple") {
+            sendResponse(getCarData('multiple', tabs[0]))
+        } else if (message === "get-car-data-multiple-append") {
+            sendResponse(getCarData('multiple', tabs[0], true))
+        } else if (message === "sort-cars") {
+            sortCars(tabs[0])
+        }
+    })
+    return true
+});
+
+async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = false) {
+    if (!tab.url) return
     const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider', 'blackList', 'zipcode'];
     var result = await chrome.storage.sync.get(keys)
     if (!result || !result.yearlyOdometer) {
         chrome.runtime.openOptionsPage();
         return
     }
-    const yearlyOdometer = result.yearlyOdometer;
-    const haggle = result.haggle;
-    let life = result.life;
+    const yearlyOdometer = result.yearlyOdometer as number;
+    const haggle = result.haggle as number;
+    let life = result.life as number;
     let cost = 0;
-    const name = result.selectedCarName;
-    let redFlags = result.redFlags;
-    let currentyear = result.currentyear;
-    let alwaysSort = result.alwaysSort;
-    let zipcode = result.zipcode | 0;
-    let alwaysVinCheck = result.alwaysVinCheck;
-    let vinProvider = result.vinProvider;
-    let {blackList} = await chrome.storage.sync.get('blackList')
+    const name = result.selectedCarName as string;
+    let redFlags = result.redFlags as string;
+    let currentyear = result.currentyear as number;
+    let alwaysSort = result.alwaysSort as boolean;
+    let zipcode = result.zipcode as number;
+    // let alwaysVinCheck = result.alwaysVinCheck;
+    let vinProvider = result.vinProvider as string;
+    const blRes = await chrome.storage.sync.get('blackList') as { blackList?: BlackList };
+    let blackList: BlackList = blRes.blackList ?? {};
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
-    if (!blackList) blackList = {}
     if (!blackList[domain]) blackList[domain] = []
     if (result.selectedCarCost) {
-        cost = result.selectedCarCost;
+        cost = result.selectedCarCost as number;
     }
     if (result.selectedCarLife) {
-        life = result.selectedCarLife;
+        life = result.selectedCarLife as number;
     }
-    let selectorConfigs = result.selectorConfigs
+    let selectorConfigs = result.selectorConfigs as SelectorConfig[]
     // if (!selectorConfigs){
     //     chrome.notifications.create({
     //         type: 'basic',
@@ -119,7 +127,7 @@ async function getCarData(mode, append) {
     //     // return
     // }
 
-    let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == mode);
+    let thisSelector = selectorConfigs.find((x: SelectorConfig) => tab.url?.includes(x.domain) && x.calculationMode == mode);
     if (!thisSelector && mode != "red-flags") {
         chrome.notifications.create({
             type: 'basic',
@@ -150,9 +158,10 @@ async function getCarData(mode, append) {
     var res
     if (thisSelector && mode != "red-flags"){
         var results = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: (mode, thisSelector, blackList, currentyear, yearlyOdometer, life, cost, haggle)=>{
-                var retVal = {}
+            target: { tabId: tab.id! },
+            func: (mode: getCarDataModes, thisSelector: SelectorConfig, blackList: string[], currentyear: number, yearlyOdometer: number, life: number, cost: number, haggle: number)=>{
+                // var retVal: {year: number, odometer: number, price: number} | ScrapedMultipleUnit[] | Error
+                var retVal: any
                 var remCount = 0
                 if (mode == "multiple") {
                     retVal = []
@@ -166,17 +175,17 @@ async function getCarData(mode, append) {
                     }
                     console.timeEnd("blacklist")
                 }
-                const carElements = document.querySelectorAll(thisSelector.carSelector);
+                const carElements = Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[];
                 console.time("Price")
                 carElements.forEach(el => {
                     try {
                         el.querySelector(".ext-diff")?.remove();
-                        const yearElement = el.querySelector(thisSelector.yearSelector);
+                        const yearElement = el.querySelector(thisSelector.yearSelector) as HTMLElement;
                         if (!yearElement) {
                             console.error(`yearElement ${thisSelector.yearSelector} not found in ${el}`);
                             return;
                         }
-                        const priceElement = el.querySelector(thisSelector.priceSelector);
+                        const priceElement = el.querySelector(thisSelector.priceSelector) as HTMLElement;
                         if (!priceElement) {
                             console.error(`priceElement ${thisSelector.priceSelector} not found in ${el}`);
                             return;
@@ -189,7 +198,7 @@ async function getCarData(mode, append) {
                         priceElement.style.fontStyle = "";
                         var year = 0;
                         if (yearElement) {
-                            year = parseInt(yearElement.textContent.match(/\d+/)[0]);
+                            year = parseInt(yearElement.textContent.match(/\d+/)![0]);
                         }
                         const priceMatch = priceElement.textContent.replaceAll(',', '').match(/\$?(\d+)(\.\d+)?/);
                         if (!priceMatch) return;
@@ -227,10 +236,10 @@ async function getCarData(mode, append) {
                             `${old.toFixed(1)} y/o (${Math.round(old / life * 100)}% of life)`;
                         if (mode == "multiple") {
                             el.title = priceElement.title
-                            let thisCar = {name: yearElement.textContent.trim(), link: el.querySelector("a").href ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer, res}
+                            let thisCar: ScrapedMultipleUnit = {name: yearElement.textContent.trim(), link: el.querySelector("a")?.href! ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer, res}
                             retVal.push(thisCar)
                         }else retVal = { year, odometer, price }
-                        el.diffNum = price - res
+                        Object.defineProperty(el, "diffNum", { value: price - res})
                         priceElement.append(tempEl);
                     } catch (error) {
                         console.error(error);
@@ -251,10 +260,10 @@ async function getCarData(mode, append) {
                     chrome.storage.sync.set({ 'scrapedSingle': res });
                 } else {
                     if (append) {
-                        let { scrapedMultiple } = await chrome.storage.local.get("scrapedMultiple")
+                        let { scrapedMultiple } = await chrome.storage.local.get("scrapedMultiple") as { scrapedMultiple: ScrapedMultipleUnit[]}
                         if (scrapedMultiple) {
                             res.push(...scrapedMultiple)
-                            res = Array.from(new Map(res.map(item => [item.link, item])).values())
+                            res = Array.from(new Map(res.map((item: ScrapedMultipleUnit) => [item.link, item])).values())
                         }
                     }
                     let remCount = res.pop()
@@ -270,22 +279,19 @@ async function getCarData(mode, append) {
                 }
             }
         }
-        if (mode == "multiple" && alwaysSort) sortCars()
+        if (mode == "multiple" && alwaysSort) sortCars(tab)
     }
     if (mode != "multiple"){
         var foundRedFlags = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: async (mode, redFlags, thisSelector, vinProvider, name, odometer, zipcode)=>{
-                var retVal = []
-                redFlags = redFlags.toLowerCase().split(/ ?, ?/)
-                flags = new Set()
-                const redFlagsRegex = new RegExp(redFlags.filter(Boolean).join('|'), 'gi');
-                /**
-                 * @param {Node} node 
-                 */
-                function processNode(node) {
+            target: { tabId: tab.id! },
+            func: async (mode: getCarDataModes, redFlags: string, thisSelector: any, vinProvider: string, name: string, odometer: number, zipcode: number)=>{
+                var retVal: any[] = []
+                let redFlagsArray = redFlags.toLowerCase().split(/ ?, ?/)
+                var flags = new Set()
+                const redFlagsRegex = new RegExp(redFlagsArray.filter(Boolean).join('|'), 'gi');
+                function processNode(node: Node) {
                     const text = node.textContent;
-                    if (!text.trim()) return;
+                    if (!text || !text.trim()) return;
 
                     const matches = text.toLowerCase().match(redFlagsRegex);
                     if (!matches) return;
@@ -297,18 +303,18 @@ async function getCarData(mode, append) {
                     const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}` : baseExcludeSelectors;
 
                     if (parent.closest(excludeSelector)) return;
-                    parent.flags = new Set()
+                    let parentFlags = new Set()
                     for (const match of matches) {
                         const flag = match.toLowerCase();
                         flags.add(flag);
-                        parent.flags.add(flag);
+                        parentFlags.add(flag);
                     }
-
-                    parent.defColor = parent.style.color
-                    parent.defTitle = parent.title
+                    Object.defineProperty(parent, 'flags', parentFlags);
+                    Object.defineProperty(parent, 'defColor', parent.style.color);
+                    Object.defineProperty(parent, 'defTitle', parent.title);
                     parent.style.setProperty("color", "red", "important");
                     parent.classList.add("ext-redFlags");
-                    parent.title = Array.from(parent.flags).join(', ');
+                    parent.title = Array.from(parentFlags).join(', ');
                 }
                 console.time("redFlags");
                 const scope = document.querySelector(thisSelector.carSelector) || document.body;
@@ -318,21 +324,21 @@ async function getCarData(mode, append) {
                 }
                 console.timeEnd("redFlags");
                 document.addEventListener('contextmenu', function handleContextMenu(e) {
-                    const flaggedElement = e.target.closest('.ext-redFlags');
+                    const flaggedElement = (e.target! as HTMLElement).closest('.ext-redFlags') as HTMLElement;
                     if (flaggedElement) {
                         e.preventDefault();
-                        flaggedElement.style.color = flaggedElement.defColor;
-                        flaggedElement.title = flaggedElement.defTitle;
+                        flaggedElement.style.color = Object.getOwnPropertyDescriptor(flaggedElement,'defColor') as string;
+                        flaggedElement.title = Object.getOwnPropertyDescriptor(flaggedElement,'defTitle') as string;
                         flaggedElement.classList.remove("ext-redFlags");
                     }
                 });
-                var myStats = document.querySelector('#ext-stats')
+                var myStats = document.querySelector('#ext-stats') as HTMLElement
                 if (!myStats) {
                     myStats = document.createElement("div")
                     myStats.id = "ext-stats"
                     myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
                     // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
-                    document.querySelector("body").append(myStats)
+                    document.querySelector("body")!.append(myStats)
                 }
                 if (flags.size > 0){
                     retVal = Array.from(flags)
@@ -359,7 +365,7 @@ async function getCarData(mode, append) {
                 let vin = document.querySelector(thisSelector.carSelector).innerText.match(/\b[\w\d]{17}\b/)
                 if (vin){
                     vin = vin[0]
-                    var check = document.getElementById("ext-checkTitle")
+                    var check = document.getElementById("ext-checkTitle") as HTMLAnchorElement | null
                     if (!check){
                         check = document.createElement("a")
                         check.style.display = "block"
@@ -369,7 +375,7 @@ async function getCarData(mode, append) {
                         check.target = "_blank"
                         myStats.append(check)
                     }
-                    var kbb = document.getElementById("ext-checkKBB")
+                    var kbb = document.getElementById("ext-checkKBB") as HTMLAnchorElement | null
                     if (!kbb){
                         kbb = document.createElement("a")
                         kbb.style.display = "block"
@@ -382,8 +388,8 @@ async function getCarData(mode, append) {
                     // if (alwaysVinCheck) check.click()
                 }
                 for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
-                    let grandParent = e.parentElement
-                    while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement
+                    let grandParent = e.parentElement as HTMLElement
+                    while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement!
                     if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
                     else grandParent.scrollIntoView({block: "center"})
                     grandParent.style.border = "solid red 1px"
@@ -394,7 +400,7 @@ async function getCarData(mode, append) {
             },
             args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, name, res ? res.odometer : 0, zipcode]
             // args: [mode, redFlags, thisSelector]
-        })
+        }) as any
         console.log(foundRedFlags)
         if (foundRedFlags && foundRedFlags.result){
             chrome.notifications.create({
@@ -409,21 +415,18 @@ async function getCarData(mode, append) {
 }
 
 
-async function sortCars() {
-    var {selectorConfigs} = await chrome.storage.sync.get("selectorConfigs")
+async function sortCars(tab: chrome.tabs.Tab) {
+    var {selectorConfigs} = await chrome.storage.sync.get("selectorConfigs") as { selectorConfigs: SelectorConfig[]}
     if (!selectorConfigs) return
-    var tab = await chrome.tabs.query({active: true, currentWindow: true})
-    tab = tab[0]
-    if (!tab) return
-    let tabId = tab.id
-    let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
+    if (!tab.url) return
+    let thisSelector = selectorConfigs.find((x: any) => tab.url?.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
-    await chrome.scripting.executeScript({target: { tabId:  tabId },func: (elSelector)=>{
+    await chrome.scripting.executeScript({target: { tabId:  tab.id! },func: (elSelector)=>{
         if (!document.querySelector(".ext-diff")) return
         console.time("sort")
-        let toSort = Array.from(document.querySelectorAll(elSelector))
-        toSort = toSort.sort((a, b) => a.diffNum > b.diffNum ? -1 : 1)
-        parentEl = toSort[0].parentElement
+        let toSort = Array.from(document.querySelectorAll(elSelector)) as HTMLElement[]
+        toSort = toSort.sort((a: any, b: any) => a.diffNum > b.diffNum ? -1 : 1)
+        let parentEl = toSort[0].parentElement as HTMLElement
         for (let s of toSort){
             s.style.order = ""
             parentEl.prepend(s)
@@ -433,9 +436,11 @@ async function sortCars() {
     }, args:[thisSelector.carSelector]})
 }
 
-async function blackListLink(link, tab){
-    var {selectorConfigs} = await chrome.storage.sync.get(["selectorConfigs"])
-    var {blackList} = await chrome.storage.local.get(["blackList"])
+async function blackListLink(link: string, tab: chrome.tabs.Tab){
+    if (!tab.url) return
+    var {selectorConfigs} = await chrome.storage.sync.get(["selectorConfigs"]) as { selectorConfigs: SelectorConfig[] }
+    const blLocal = await chrome.storage.local.get(["blackList"]) as { blackList?: BlackList }
+    let blackList: BlackList = blLocal.blackList ?? {}
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     let cleanLink = new URL(link).pathname
@@ -443,17 +448,19 @@ async function blackListLink(link, tab){
     if (!blackList[domain]) blackList[domain] = []
     if (!blackList[domain].includes(cleanLink)) blackList[domain].push(cleanLink)
     await chrome.storage.sync.set({blackList: blackList})
-    let thisSelector = selectorConfigs.find(x => tab.url.includes(x.domain) && x.calculationMode == "multiple");
+    let thisSelector = selectorConfigs.find((x: SelectorConfig) => tab.url?.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
-    await chrome.scripting.executeScript({target: { tabId: tab.id},func: (thisSelector, link)=>{
-        document.querySelector(`${thisSelector}:has(a[href*="${link}"])`).remove()
+    await chrome.scripting.executeScript({target: { tabId: tab.id! },func: (thisSelector: any, link: string)=>{
+        document.querySelector(`${thisSelector}:has(a[href*="${link}"])`)?.remove()
     }, args:[thisSelector.carSelector, cleanLink]})
 }
 
-async function clearBlackList(tab) {
+async function clearBlackList(tab: chrome.tabs.Tab) {
+    if (!tab.url) return
     // if (!confirm("Are you sure?")) return
-    var { blackList } = await chrome.storage.local.get("blackList")
-    if (!blackList) return
+    const blRes = await chrome.storage.local.get("blackList") as { blackList?: BlackList }
+    let blackList: BlackList = blRes.blackList ?? {}
+    if (!Object.keys(blackList).length) return
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     if (blackList[domain]) blackList[domain] = []

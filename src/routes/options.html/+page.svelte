@@ -1,16 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-
-    interface SelectorConfig {
-        id: number;
-        domain: string;
-        calculationMode: 'single' | 'multiple';
-        yearSelector: string;
-        odometerSelector: string;
-        priceSelector: string;
-        carSelector: string; // For multiple listings
-        excludeSelector?: string
-    }
+    import type { SelectorConfig } from "$lib";
 
     // Default presets
     let yearlyOdometer = $state(0);
@@ -36,7 +26,7 @@
 
     onMount(async () => {
         // Load saved settings when the component mounts
-        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort','zipcode'])
+        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysVinCheck', 'alwaysSort','zipcode']) as any
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) typicalLife = result.typicalLife;
