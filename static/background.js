@@ -6,11 +6,11 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ["page"],
   });
 
-chrome.contextMenus.create({
-    id: "get-red-flags",
-    title: "Red Flags",
-    contexts: ["page"],
-  });
+// chrome.contextMenus.create({
+//     id: "get-red-flags",
+//     title: "Red Flags",
+//     contexts: ["page"],
+//   });
 
   chrome.contextMenus.create({
     id: "get-car-data-multiple",
@@ -76,22 +76,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
 });
 
 async function getCarData(mode, append) {
-    // if (!tab.id) return;
-    var tab = await chrome.tabs.query({active: true, currentWindow: true})
-    tab = tab[0]
+    var tab = (await chrome.tabs.query({active: true, currentWindow: true}))[0]
     if (!tab) return
     let tabId = tab.id
-    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider', 'blackList'];
+    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider', 'blackList', 'zipcode'];
     var result = await chrome.storage.sync.get(keys)
-    if (!result) return
-    const yearlyOdometer = result.yearlyOdometer || 13.5;
-    const haggle = result.haggle || 15;
-    let life = result.life || 15;
+    if (!result || !result.yearlyOdometer) {
+        chrome.runtime.openOptionsPage();
+        return
+    }
+    const yearlyOdometer = result.yearlyOdometer;
+    const haggle = result.haggle;
+    let life = result.life;
     let cost = 0;
     const name = result.selectedCarName;
-    let redFlags = result.redFlags || "";
+    let redFlags = result.redFlags;
     let currentyear = result.currentyear;
     let alwaysSort = result.alwaysSort;
+    let zipcode = result.zipcode | 0;
     let alwaysVinCheck = result.alwaysVinCheck;
     let vinProvider = result.vinProvider;
     let {blackList} = await chrome.storage.sync.get('blackList')
@@ -99,12 +101,6 @@ async function getCarData(mode, append) {
     let domain = `${tabURL.hostname}${tabURL.pathname}`
     if (!blackList) blackList = {}
     if (!blackList[domain]) blackList[domain] = []
-    if (!currentyear){
-        currentyear = new Date().getFullYear();
-        if (new Date().getMonth() + 1 > 8){
-            currentyear++;
-        }
-    }
     if (result.selectedCarCost) {
         cost = result.selectedCarCost;
     }
@@ -241,6 +237,7 @@ async function getCarData(mode, append) {
                         retVal = error
                     }
                 });
+                if (mode == "multiple") retVal.push(remCount)
                 console.timeEnd("Price")
                 return retVal
             },
@@ -260,16 +257,17 @@ async function getCarData(mode, append) {
                             res = Array.from(new Map(res.map(item => [item.link, item])).values())
                         }
                     }
+                    let remCount = res.pop()
+                    if (remCount > 0) {
+                        chrome.notifications.create({
+                            type: 'basic',
+                            iconUrl: 'icons/icon-48x48.png',
+                            title: `Removed ${remCount} blacklisted listings`,
+                            message: `Total ${blackList[domain].length} blacklisted listings`
+                        });
+                    }
                     await chrome.storage.local.set({ 'scrapedMultiple': res })
                 }
-            }
-            if (results[0].result[1] > 0) {
-                chrome.notifications.create({
-                    type: 'basic',
-                    iconUrl: 'icons/icon-128x128.png',
-                    title: `Removed ${results[0].result[1]} blacklisted listings`,
-                    message: `Total ${blackList.length} blacklisted listings`
-                });
             }
         }
         if (mode == "multiple" && alwaysSort) sortCars()
@@ -277,48 +275,57 @@ async function getCarData(mode, append) {
     if (mode != "multiple"){
         var foundRedFlags = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: async (mode, redFlags, thisSelector, vinProvider, name, odometer)=>{
-            // func: async (mode, redFlags, thisSelector)=>{
+            func: async (mode, redFlags, thisSelector, vinProvider, name, odometer, zipcode)=>{
                 var retVal = []
                 redFlags = redFlags.toLowerCase().split(/ ?, ?/)
                 flags = new Set()
-                var exclude = []
-                if (thisSelector.excludeSelector) exclude = Array.from(document.querySelectorAll(thisSelector.excludeSelector))
-                function checkChildren(el){
-                    if (!el.tagName) return
-                    if (el.tagName == "SCRIPT" || el.tagName == "STYLE" || el.id == "ext-danger") return
-                    if (exclude.includes(el)) return
-                    // if (el.getBoundingClientRect().height < 1) return
-                    for (let x of el.childNodes){
-                        if (x.nodeName == "#text"){
-                            text = x.textContent.trim().toLowerCase()
-                            if (!text) continue
-                            for (r of redFlags){
-                                if (text.includes(r)){
-                                    if (!el.flags) el.flags = []
-                                    if (!el.flags.includes(r)) el.flags.push(r)
-                                    flags.add(r)
-                                }
-                            }
-                            if (el.flags){
-                                console.log(el, el.flags)
-                                el.style.setProperty("color", "red", "important")
-                                el.classList.add("ext-redFlags")
-                                el.title = el.flags
-                                el.oncontextmenu = (e) => {
-                                    e.preventDefault()
-                                    el.style.color = ""
-                                    el.title.remove()
-                                    el.classList.remove("ext-redFlags")
-                                    el.oncontextmenu.remove()
-                                }
-                            }
-                        } else checkChildren(x)
+                const redFlagsRegex = new RegExp(redFlags.filter(Boolean).join('|'), 'gi');
+                /**
+                 * @param {Node} node 
+                 */
+                function processNode(node) {
+                    const text = node.textContent;
+                    if (!text.trim()) return;
+
+                    const matches = text.toLowerCase().match(redFlagsRegex);
+                    if (!matches) return;
+
+                    const parent = node.parentElement;
+                    if (!parent) return;
+
+                    const baseExcludeSelectors = 'script, style, .ext-redFlags';
+                    const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}` : baseExcludeSelectors;
+
+                    if (parent.closest(excludeSelector)) return;
+                    parent.flags = new Set()
+                    for (const match of matches) {
+                        const flag = match.toLowerCase();
+                        flags.add(flag);
+                        parent.flags.add(flag);
                     }
+
+                    parent.defColor = parent.style.color
+                    parent.defTitle = parent.title
+                    parent.style.setProperty("color", "red", "important");
+                    parent.classList.add("ext-redFlags");
+                    parent.title = Array.from(parent.flags).join(', ');
                 }
-                console.time("redFlags")
-                for (let x of document.querySelectorAll(thisSelector.carSelector)) checkChildren(x)
-                console.timeEnd("redFlags")
+                console.time("redFlags");
+                const scope = document.querySelector(thisSelector.carSelector) || document.body;
+                const treeWalker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+                while (treeWalker.nextNode()) {
+                    processNode(treeWalker.currentNode);
+                }
+                console.timeEnd("redFlags");
+                document.addEventListener('contextmenu', function handleContextMenu(e) {
+                    const flaggedElement = e.target.closest('.ext-redFlags');
+                    if (flaggedElement) {
+                        e.preventDefault();
+                        flaggedElement.style.color = flaggedElement.defColor;
+                        flaggedElement.title = flaggedElement.defTitle;
+                        flaggedElement.classList.remove("ext-redFlags");
+                    }
+                });
                 var myStats = document.querySelector('#ext-stats')
                 if (!myStats) {
                     myStats = document.createElement("div")
@@ -368,29 +375,24 @@ async function getCarData(mode, append) {
                         kbb.style.display = "block"
                         kbb.textContent = "Check KBB"
                         kbb.id = "ext-checkKBB"
-                        kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`
+                        kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}&zipcode=${zipcode}`
                         kbb.target = "_blank"
                         myStats.append(kbb)
                     }
-                    // let split = name.split(" ")
-                    // let brand = split[0]
-                    // let model = split[1]
-                    // await navigator.clipboard.writeText(vin)
                     // if (alwaysVinCheck) check.click()
                 }
                 for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
-                    // let grandParent = e.parentElement.parentElement
                     let grandParent = e.parentElement
                     while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement
-                    if (el.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
+                    if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
                     else grandParent.scrollIntoView({block: "center"})
-                    grandParent.style.border = "solid red 2px"
+                    grandParent.style.border = "solid red 1px"
                     await new Promise(resolve => setTimeout(resolve, 1000))
-                    grandParent.style.border = ""
+                    // if (e.getBoundingClientRect().height > 0) grandParent.style.border = ""
                 }
                 return retVal
             },
-            args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, name, res ? res.odometer : 0]
+            args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, name, res ? res.odometer : 0, zipcode]
             // args: [mode, redFlags, thisSelector]
         })
         console.log(foundRedFlags)
