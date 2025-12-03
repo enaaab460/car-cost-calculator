@@ -308,12 +308,13 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         flags.add(flag);
                         parentFlags.add(flag);
                     }
-                    Object.defineProperty(parent, 'flags', parentFlags);
-                    Object.defineProperty(parent, 'defColor', parent.style.color);
-                    Object.defineProperty(parent, 'defTitle', parent.title);
+                    Object.defineProperty(parent, 'flags', {value: Array.from(parentFlags)});
+                    Object.defineProperty(parent, 'defColor', {value: parent.style.color});
+                    Object.defineProperty(parent, 'defTitle', {value: parent.title});
                     parent.style.setProperty("color", "red", "important");
                     parent.classList.add("ext-redFlags");
                     parent.title = Array.from(parentFlags).join(', ');
+                    console.log(parent, parentFlags)
                 }
                 console.time("redFlags");
                 const scope = document.querySelector(thisSelector.carSelector) || document.body;
@@ -326,8 +327,8 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const flaggedElement = (e.target! as HTMLElement).closest('.ext-redFlags') as HTMLElement;
                     if (flaggedElement) {
                         e.preventDefault();
-                        flaggedElement.style.color = Object.getOwnPropertyDescriptor(flaggedElement,'defColor') as string;
-                        flaggedElement.title = Object.getOwnPropertyDescriptor(flaggedElement,'defTitle') as string;
+                        flaggedElement.style.color = Object.getOwnPropertyDescriptor(flaggedElement,'defColor')?.value as string;
+                        flaggedElement.title = Object.getOwnPropertyDescriptor(flaggedElement,'defTitle')?.value as string;
                         flaggedElement.classList.remove("ext-redFlags");
                     }
                 });
@@ -391,7 +392,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement!
                     if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
                     else grandParent.scrollIntoView({block: "center"})
-                    grandParent.style.border = "solid red 1px"
+                    grandParent.style.setProperty("border","solid red 1px", "important")
                     await new Promise(resolve => setTimeout(resolve, 1000))
                     // if (e.getBoundingClientRect().height > 0) grandParent.style.border = ""
                 }
