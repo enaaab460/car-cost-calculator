@@ -221,9 +221,11 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
             target: { tabId: tab.id! },
             func: async (mode: getCarDataModes, redFlags: string, thisSelector: any, vinProvider: string, name: string, odometer: number, zipcode: number)=>{
                 var retVal: any[] = []
-                let redFlagsArray = redFlags.toLowerCase().split(/ ?, ?/)
+                let redFlagsArray = redFlags.replace(/[.*+?^${}()|[\]]/g, '\\$&').toLowerCase().split(/ ?, ?/)
                 var flags = new Set()
                 const redFlagsRegex = new RegExp(redFlagsArray.filter(Boolean).join('|'), 'gi');
+                const baseExcludeSelectors = 'script, style, .ext-redFlags';
+                const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector}` : baseExcludeSelectors;
                 function processNode(node: Node) {
                     const text = node.textContent;
                     if (!text || !text.trim()) return;
@@ -233,9 +235,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
 
                     const parent = node.parentElement;
                     if (!parent) return;
-
-                    const baseExcludeSelectors = 'script, style, .ext-redFlags';
-                    const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}` : baseExcludeSelectors;
 
                     if (parent.closest(excludeSelector)) return;
                     let parentFlags = new Set()
@@ -353,7 +352,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
 
 async function sortCars(tab: chrome.tabs.Tab) {
     var {selectorConfigs} = await chrome.storage.sync.get("selectorConfigs") as { selectorConfigs: SelectorConfig[]}
-    if (!selectorConfigs) return
+    if (!selectorConfigs) {
+        chrome.runtime.openOptionsPage();
+        return
+    }
     if (!tab.url) return
     let thisSelector = selectorConfigs.find((x: any) => tab.url?.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
@@ -375,6 +377,10 @@ async function sortCars(tab: chrome.tabs.Tab) {
 async function blackListLink(link: string, tab: chrome.tabs.Tab){
     if (!tab.url) return
     var {selectorConfigs} = await chrome.storage.sync.get(["selectorConfigs"]) as { selectorConfigs: SelectorConfig[] }
+    if (!selectorConfigs) {
+        chrome.runtime.openOptionsPage();
+        return
+    }
     const blLocal = await chrome.storage.local.get(["blackList"]) as { blackList?: BlackList }
     let blackList: BlackList = blLocal.blackList ?? {}
     let tabURL = new URL(tab.url)
