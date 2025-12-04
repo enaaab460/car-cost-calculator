@@ -8,9 +8,9 @@ Price is calculated as $$\text{Price} = (1 - 2/\text{life})^\text{years} \cdot \
 
 where $$\text{years} = (\text{age of model} + (\text{odometer} / \text{yearlyOdometer})) / 2$$
 
-where the car is in very good or excellent condition, is very commonly available (not exotic, 10k+ listings on visor.vin for example), and its price throughout the years matches inflation.
+where the car is in very good or excellent condition, is very commonly available (not exotic, 10k+ listings for the model, 100+ for the trim and year on visor.vin for example), and its price throughout the years matches inflation.
 
-where life is assumed to be between 10 and 20 years, at 13.5k miles a year (can be changed in the settings). Research should be done about the reliability of the brand, model, specific years, and the maintenance of the specific car. Sources at the end of the page might be a good starting point. Less reliable cars are closer to 10 years and more reliable are closer to 20 years, assuming excellent condition and maintenance. Life is not simply the expected lifespan of the drivetrain. A running car can be also be totaled if it needs expensive repairs (relative to the remaining value of the car) or if parts are no longer available. Rust rots and condition of interior and exterior degrades with time regardless of miles. Even though there are exceptions, turbos, cvts, hybrid/battery systems, and head gaskets are common headaches to look out for when researching reliability.
+where life is assumed to be around 10 to 20 years, at ~~13.5k~~ 10k miles a year (can be changed in the settings, read Average yearly driven miles Tangent). Research should be done about the reliability of the brand, model, specific years, and the maintenance of the specific car. Sources at the end of the page might be a good starting point. Less reliable cars are closer to 10 years (~~135k~~ 100k miles) and more reliable are closer to 20 years (~~270k~~ 200k miles), assuming excellent condition and maintenance. Life is not simply the expected lifespan of the drivetrain. A running car can be also be totaled if it needs expensive repairs (relative to the remaining value of the car) or if parts are no longer available. Rust rots and condition of interior and exterior degrades with time regardless of miles. Even though there are exceptions, turbos, cvts, hybrid/battery systems, and head gaskets are common headaches to look out for when researching reliability.
 
 ## Quick notes 
 
@@ -32,7 +32,7 @@ Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years bef
 
 ## Explanation of price style
 
-* yellow = >50% below fair price -> just downpayment / need extensive repairs / branded title / project car / unicorn
+* yellow = >50% below fair price -> just downpayment / need extensive repairs / branded title / project car / lemon / (insane / impossible deal)
 
 * green = below haggled percent (15% by default) from fair price -> many have branded title (in my experience) but some might not (best option if mechanically sound, might not have room for negotiation).
 
@@ -65,7 +65,7 @@ If the website is not registered, it will be replaced by a `Red Flags` button th
 
 The default css selector of single mode is `body`, which works fine for the majority of websites. If you are getting a lot of false positives for red flags, you might choose a more specific css selector that contains both the essential listing details (year, odometer, price) and description (accidents, title, ...). If there is no single element that contains them both, you can use the css selectors of both elements joined by a comma (eg, cars.com single mode css selector does this: `.basics-content-wrapper,.listing-overview`). If the essential listing details are not in single (larger) element, the operation will fail. This might be finicky and you might end up using `body` in the end.
 
-With Version 1.2, `excludeSelector` is added, by right clicking the delete button of the website preset. It allows skipping specific elements from checking for red flags, which was needed for `truecars.com` to exclude the `Recommended for you` section. Red boxes are now permanent, and help locate hidden red flags inside tabs or menus. It might be a better alternative to the previous comma separated `carSelector` elements. Zipcode support is started out, but it is not mandatory.
+With Version 1.2, `excludeSelector` is added, by right clicking the delete button of the website preset. It allows skipping specific elements from checking for red flags, which was needed for `truecars.com` to exclude the `Recommended for you` section. Red boxes are now permanent, and help locate hidden red flags inside tabs or menus. It might be a better alternative to the previous comma separated `carSelector` elements. Zipcode support for KBB is introduced, but it is not mandatory.
 
 ## Multiple mode (Alt-W)
 Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
@@ -103,6 +103,10 @@ Branded cars are inherently more risky than clean title cars, but if they are pr
 
 Clean title cars can also have unwelcome surprises, since repairs done outside insurance will not affect the title. Car history services can simplify the process a bit, but they should not replace a proper pre-purchase inspection (PPI). Read about car title washing.
 
+## Average yearly driven miles Tangent
+
+The 13.5k miles a year is average of all drivers and all driving, personal and commercial. Meaning taxi, cargo trucks, and other business vehicles push the average up. I could not find a source for median distance driven personally. If we consider that the average commute is 30 miles round trip a day, it would add up to 7.6k miles a year. But not all personal driving is commuting, so it is not the best metric either. Another metric is the difference between mens' (16.5k) and womens' (10.1k) yearly distance. If we estimate that women are less likely to drive commercially than men, their yearly miles might better reflect average personal driving. Most leases are also 10k miles/year or less. Another metric would be the FHWA 2023 VMT, which puts the average miles travelled for light duty vehicles with short wheel base at 11k miles/year (including commercial). All subsitute metrics would decrease cars' value at 100k miles compared to the original 13.5k miles/year (less miles/year == more years' worth of depreciation/wear for a given distance). It is even more convoluted when we consider that city miles cause more wear than highway miles.
+
 ### Sources:
 
 \* Heard multiple times on Youtube but can't find source now
@@ -122,6 +126,8 @@ https://carconfections.com/reliability-resale-value/
 https://www.youtube.com/@TheCarCareNutReviews
 
 https://caredge.com/guides/fastest-and-slowest-selling-cars-2025
+
+https://www.fhwa.dot.gov/policyinformation/statistics/2023/vm1.cfm
 
 # Disclaimers (might be superfluous)
 
