@@ -123,6 +123,22 @@
             resultText = 'Use the last two digits (e.g.: 21 for 2021).<br>Use negative numbers before 2000 (e.g.: -3 for 1997)';
             return
         }
+        if (odometer && odometer <= 0) {
+            resultText = "Odometer can't be less than or equal to 0"
+            return
+        }
+        if (price && price <= 0) {
+            resultText = "Price can't be less than or equal to 0"
+            return
+        }
+        if (cost <= 0) {
+            resultText = "Cost can't be less than or equal to 0"
+            return
+        }
+        if (typicalLife <= 0) {
+            resultText = "Life can't be less than or equal to 0"
+            return
+        }
         if (odometer == null && year != null) {
             old = currentyear - 2000 - year
             odometer = old * yearlyOdometer
@@ -152,7 +168,7 @@
         if (depreciationChart) {
             depreciationChart.destroy();
         }
-        if (!depreciationCanvas) return
+        if (!depreciationCanvas || !cost || !typicalLife) return
         let xAxis = Array.from({ length: typicalLife+1 }, (_, i) => i)
         let chartOptions: ChartConfiguration = {
             type:"line",
@@ -220,11 +236,15 @@
                 }
             )
         } 
-        chrome.storage.sync.set({"scrapedSingle":{year, odometer, price}})
         depreciationChart = new Chart(depreciationCanvas, chartOptions)
         depreciationCanvas.style.height = '30em'
+        if (!year || !odometer) return
+        var scrapedSingle: any = {year: year + 2000, odometer: odometer * 1000}
+        if (price) scrapedSingle.price = price * 1000
+        chrome.storage.sync.set({"scrapedSingle": scrapedSingle})
     }
 
+    // GEMINI
     function calculateRegressionLine(data: Point[]) {
         const n = data.length;
         let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
@@ -260,11 +280,12 @@
         return { m, b, trendlineData };
     }
 
+    // GEMINI Altered
     function drawRegressionChart(data: CarPoint[]){
         if (regressionChart) {
             regressionChart.destroy();
         }
-        if (!regressionCanvas || !data) return
+        if (!regressionCanvas || !data || !cost || !typicalLife) return
 
         console.log(data)
         let scatterData = data.map((x: CarPoint) => ({ x: x.age, y: x.price }))
@@ -280,12 +301,14 @@
         }
         regressionDataUrl = URL.createObjectURL(blob);
         const regression = calculateRegressionLine(scatterData);
+        // if (!regression) return
         const { m, b, trendlineData } = regression;
         
-        // var optTrendline = [{x: 0, y: cost * 1000},{x: life, y: cost * 1000 * Math.pow(1 - 2/life, life)}]
         let xAxis = Array.from({ length: typicalLife+1 }, (_, i) => i)
         let correct = xAxis.map(x => ({x: x, y: cost * 1000 * Math.pow(1 - 2/typicalLife, x)}))
-        const { m: om, b: ob, trendlineData: otl } = calculateRegressionLine(correct)
+        let fairRegression = calculateRegressionLine(correct)
+        // if (!fairRegression) return
+        const { m: om, b: ob, trendlineData: otl } = fairRegression
         const config = {
             type: 'scatter',
             data: {
