@@ -219,7 +219,8 @@
                     pointRadius: 5,
                 }
             )
-        }
+        } 
+        chrome.storage.sync.set({"scrapedSingle":{year, odometer, price}})
         depreciationChart = new Chart(depreciationCanvas, chartOptions)
         depreciationCanvas.style.height = '30em'
     }

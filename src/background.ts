@@ -416,7 +416,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
 
 async function sortCars(tab: chrome.tabs.Tab) {
     var {selectorConfigs} = await chrome.storage.sync.get("selectorConfigs") as { selectorConfigs: SelectorConfig[]}
-    if (!selectorConfigs) return
+    if (!selectorConfigs) {
+        chrome.runtime.openOptionsPage();
+        return
+    }
     if (!tab.url) return
     let thisSelector = selectorConfigs.find((x: any) => tab.url?.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
@@ -438,6 +441,10 @@ async function sortCars(tab: chrome.tabs.Tab) {
 async function blackListLink(link: string, tab: chrome.tabs.Tab){
     if (!tab.url) return
     var {selectorConfigs} = await chrome.storage.sync.get(["selectorConfigs"]) as { selectorConfigs: SelectorConfig[] }
+    if (!selectorConfigs) {
+        chrome.runtime.openOptionsPage();
+        return
+    }
     const blLocal = await chrome.storage.local.get(["blackList"]) as { blackList?: BlackList }
     let blackList: BlackList = blLocal.blackList ?? {}
     let tabURL = new URL(tab.url)
