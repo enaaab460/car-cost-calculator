@@ -152,6 +152,12 @@ run `npm install` then `npm run build` in root directory, then navigate to `abou
 
 PRs to acheive TODO.md would be greatly appreciated.
 
+## Android specific notes
+
+To install from source or release, google how to debug firefox android extensions.
+
+Right click features, scrolling to red flags, and hovering over price to check more data can't work due to platform limitation.
+
 # Acknowledgements / Dependencies:
 
 Sveltekit: https://github.com/sveltejs/kit
