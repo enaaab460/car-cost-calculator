@@ -1,6 +1,6 @@
 {
     "settings": {
-        "yearlyOdometer": 13.5,
+        "yearlyOdometer": 10,
         "haggle": 15,
         "typicalLife": 15,
         "currentyear": 2026,
@@ -114,25 +114,6 @@
             "carSelector": "li.col-md-6.col-12.mb-md-1_5.mb-0_75.d-flex"
         },
         {
-            "calculationMode": "single",
-            "carSelector": ".xtxwg39.xiylbte.x10wlt62.x6ikm8r.x1lytzrv.xdt5ytf.x78zum5.x1jx94hy",
-            "domain": "facebook.com",
-            "id": 1761470621101,
-            "odometerSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:nth-of-type(1) > .xeuugli.xs83m0k.x1iyjqo2.x1r8uery.xamitd3.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-div > .xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
-            "priceSelector": ".xf7dkkf.x18d9i69.xv54qhq.xyamay9 > .x1xmf6yo > div",
-            "yearSelector": ".xeuugli.x193iq5w.x1a2a7pz.x1pd3egz.x1qlqyl8.x1heor9g.x1vvkbs.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-h1"
-        },
-        {
-            "calculationMode": "multiple",
-            "carSelector": "[id^=\"mount_0_0_\"]:not([style=\"display:none\"]) .x165d6jo.x4vbgl9.x1lxpwgx.x1rdy4ex.x1nhvcw1.x1a02dak.x1q0g3np.x78zum5.x8gbvx8 > div",
-            "domain": "facebook.com",
-            "id": 1761282278614,
-            "milesSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
-            "odometerSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
-            "priceSelector": ".xzsf02u.x1s688f.x1lbecb7.x1jchvi3.x676frb.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
-            "yearSelector": ".xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1n2onr6.x10wlt62.x6ikm8r.x1lliihq"
-        },
-        {
             "id": 1762704708550,
             "domain": "truecar.com",
             "calculationMode": "single",
@@ -168,7 +149,27 @@
             "id": 1761472511456,
             "odometerSelector": ".dark\\:text-accent-foreground\\/80.text-\\[\\#797979\\].text-right",
             "priceSelector": ".text-3xl.font-semibold",
-            "yearSelector": ".md\\:space-y-2\\.5.text-foreground.px-4.space-y-1 > .gap-x-2.items-center.flex-row.flex > .text-xl.font-semibold"
+            "yearSelector": ".md\\:space-y-2\\.5.text-foreground.px-4.space-y-1 > .gap-x-2.items-center.flex-row.flex > .text-xl.font-semibold",
+            "excludeSelector": ".px-4.space-y-6.mb-4 > .dark\\:text-foreground"
+        },
+        {
+            "calculationMode": "multiple",
+            "carSelector": "[id^=\"mount_0_0_\"]:not([style=\"display:none\"]) .x165d6jo.x4vbgl9.x1lxpwgx.x1rdy4ex.x1nhvcw1.x1a02dak.x1q0g3np.x78zum5.x8gbvx8 > div",
+            "domain": "www.facebook.com/marketplace/",
+            "id": 1761282278614,
+            "milesSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
+            "odometerSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
+            "priceSelector": ".xzsf02u.x1s688f.x1lbecb7.x1jchvi3.x676frb.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
+            "yearSelector": ".xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1n2onr6.x10wlt62.x6ikm8r.x1lliihq"
+        },
+        {
+            "calculationMode": "single",
+            "carSelector": ".xtxwg39.xiylbte.x10wlt62.x6ikm8r.x1lytzrv.xdt5ytf.x78zum5.x1jx94hy",
+            "domain": "www.facebook.com/marketplace/item/",
+            "id": 1761470621101,
+            "odometerSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:nth-of-type(1) > .xeuugli.xs83m0k.x1iyjqo2.x1r8uery.xamitd3.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-div > .xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
+            "priceSelector": ".xf7dkkf.x18d9i69.xv54qhq.xyamay9 > .x1xmf6yo > div",
+            "yearSelector": ".xeuugli.x193iq5w.x1a2a7pz.x1pd3egz.x1qlqyl8.x1heor9g.x1vvkbs.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-h1"
         }
     ]
 }
