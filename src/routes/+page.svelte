@@ -470,8 +470,8 @@
                         "saddlebrown"
                     ) : "black"
                 }
-                style:textDecoration = { (old > typicalLife) ? "line-through" : (old / typicalLife > 2/4) ? "underline" : ""};
-                style:fontStyle = {(old / typicalLife < 1 / 4) ? "italic" : ""}
+                style:text-decoration = { (old > typicalLife) ? "line-through" : (old / typicalLife > 2/4) ? "underline" : ""};
+                style:font-style = {(old / typicalLife < 1 / 4) ? "italic" : ""}
                 style:padding ="0.5em" class="mb-1" 
             >
                 {@html resultText}
