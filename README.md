@@ -34,7 +34,7 @@ Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years bef
 
 * yellow = >50% below fair price -> just downpayment / need extensive repairs / branded title / project car / lemon / (insane / impossible deal)
 
-* green = below haggled percent (15% by default) from fair price -> many have branded title (in my experience) but some might not (best option if mechanically sound, might not have room for negotiation).
+* green = below haggled percent (15% by default) from fair price -> many have branded title (in my experience) or rental but some might not (best option if mechanically sound, might not have room for negotiation).
 
 * cyan = below fair price but not green -> some might be branded but many won't (sweet spot)
 

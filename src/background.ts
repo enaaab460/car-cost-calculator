@@ -187,7 +187,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             console.error(`priceElement ${thisSelector.priceSelector} not found in ${el}`);
                             return;
                         }
-                        const odometerElement = el.querySelector(thisSelector.odometerSelector);
+                        const odometerElement = el.querySelector(thisSelector.odometerSelector) as HTMLElement;
                         // if (!odometerElement) {
                         //     console.error(`odometerElement ${thisSelector.odometerSelector} not found`);
                         //     return;
@@ -195,21 +195,28 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         priceElement.style.fontStyle = "";
                         var year = 0;
                         if (yearElement) {
-                            year = parseInt(yearElement.textContent.match(/\d+/)![0]);
+                            let parsedYear = yearElement.textContent.match(/\d+/)
+                            if (parsedYear) year = parseInt(parsedYear[0]);
+                            if (year < 1950 || year > currentyear + 1) return
                         }
                         const priceMatch = priceElement.textContent.replaceAll(',', '').match(/\$?(\d+)(\.\d+)?/);
                         if (!priceMatch) return;
                         const price = parseInt(priceMatch[1]);
                         var odometer = 0;
                         if (odometerElement) {
-                            var odText = odometerElement.textContent.toLowerCase();
-                            const odometerMatch = odText.replaceAll(',', '').match(/(\d+)(\.\d+)?k?( (mi|km))?/);
+                            var odText = odometerElement.innerText.toLowerCase().replaceAll(',', '');
+                            var odometerMatch = odText.match(/(\d+)(\.\d+)?k?( (mi|km))/);
+                            if (!odometerMatch) odometerMatch = odText.match(/(\d+)(\.\d+)?k?/);
                             if (odometerMatch) {
                                 odometer = parseInt(odometerMatch[1]);
                                 if (odText.search(/k(?!m)/) != -1) odometer = odometer * 1000;
                             }
+                            
                         }
-                        var old = ((currentyear - year) + odometer / yearlyOdometer) / 2;
+                        var old = 0
+                        if (year && odometer) old = ((currentyear - year) + (odometer / yearlyOdometer)) / 2;
+                        else if (year) old = currentyear - year
+                        else if (odometer) old = odometer / yearlyOdometer
                         var costFrac = Math.pow(1 - 2 / life, old)
                         var res = Math.round(cost * costFrac);
                         var beHaggle = Math.round(res / (1 - haggle / 100));
@@ -424,7 +431,7 @@ async function sortCars(tab: chrome.tabs.Tab) {
     await chrome.scripting.executeScript({target: { tabId:  tab.id! },func: (elSelector)=>{
         if (!document.querySelector(".ext-diff")) return
         console.time("sort")
-        let toSort = Array.from(document.querySelectorAll(elSelector)) as HTMLElement[]
+        let toSort = Array.from(document.querySelectorAll(`${elSelector}:has(.ext-diff)`)) as HTMLElement[]
         toSort = toSort.sort((a: any, b: any) => a.diffNum > b.diffNum ? -1 : 1)
         let parentEl = toSort[0].parentElement as HTMLElement
         for (let s of toSort){
