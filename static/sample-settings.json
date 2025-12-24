@@ -96,7 +96,7 @@
         },
         {
             "calculationMode": "multiple",
-            "carSelector": ".gallery-card",
+            "carSelector": ".cl-search-result.cl-search-view-mode-gallery",
             "domain": "craigslist.org",
             "id": 1761463009979,
             "milesSelector": ".meta",

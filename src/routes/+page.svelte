@@ -413,7 +413,7 @@
         var res:CarPoint[]
         if (append) res = await chrome.runtime.sendMessage(["get-car-data-multiple-append", tab])
         else res = await chrome.runtime.sendMessage(["get-car-data-multiple", tab])
-        if (res){
+        if (res.length > 0){
             drawDepreciationChart()
             drawRegressionChart(res)
         }
