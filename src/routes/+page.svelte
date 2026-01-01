@@ -70,25 +70,17 @@
 
     function clearSelectedCar(){
         name = ''
-        localStorage.removeItem('selectedCar')
-        localStorage.removeItem('scrapedSingle')
-        resetResult()
+        onCarChange()
     }
 
     function onCarChange() {
-        typicalLife = 0
-        cost = 0
-        year = null
-        odometer = null
-        price = null
-        if (!name) {
-            clearSelectedCar()
-            return;
-        }
+        localStorage.removeItem('selectedCar')
+        localStorage.removeItem('scrapedSingle')
         resetResult()
+        // drawDepreciationChart()
+        if (!name) return;
         const lowerCaseName = name.toLowerCase();
         const matchingPreset = carPresets.find(p => p.name.toLowerCase() === lowerCaseName);
-
         if (matchingPreset) {
             typicalLife = matchingPreset.life;
             if (matchingPreset.msrp > 0) {
@@ -98,7 +90,6 @@
         } else {
             localStorage.removeItem('selectedCar')
         }
-        drawDepreciationChart()
     }
 
     function runCalculation() {
@@ -283,11 +274,11 @@
         <div><label title={odometer ? (odometer/yearlyOdometer).toFixed(1) + "y" : ""}><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
         <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
-    {#if cost && typicalLife && !depreciationChart?.canvas}
+    <!-- {#if cost && typicalLife && !depreciationChart?.canvas}
         <div class="mb-1">
             <button onclick={drawDepreciationChart}>Draw Depreciation</button>
         </div>
-    {/if}
+    {/if} -->
     {#if (year != null || odometer != null)}
         {@const spLen = name.split(" ").length}
         <div class="mb-1">
@@ -309,6 +300,7 @@
                         "saddlebrown"
                     ) : "black"
                 }
+                style:background={(price && (price*1000 <= fairPrice * 1 / 2))? "gray" : ""}
                 style:text-decoration = { (old > typicalLife) ? "line-through" : (old / typicalLife > 2/4) ? "underline" : ""};
                 style:font-style = {(old / typicalLife < 1 / 4) ? "italic" : ""}
                 style:padding ="0.5em" class="mb-1" 
