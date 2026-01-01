@@ -8,9 +8,14 @@
 
     onMount(() => {
         // Load saved presets when the component mounts
-        let result = localStorage.getItem('carPresets')
+        var result = localStorage.getItem('carPresets')
         if (result){
             carPresets = JSON.parse(result)
+        }
+        result = localStorage.getItem("settings")
+        if (result){
+            let r = JSON.parse(result)
+            typicalLife = r.typicalLife
         }
         document.onkeydown = (e) => {
             if (e.key == "s" && e.ctrlKey){

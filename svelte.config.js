@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-cloudflare';
+import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -9,7 +9,6 @@ const config = {
 		adapter: adapter({
 			pages: 'build/online',
 			assets: 'build/online',
-			manifest: 'manifest.json',
 		}),
 		appDir: 'app',
 	}
