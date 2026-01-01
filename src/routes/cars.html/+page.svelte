@@ -8,11 +8,10 @@
 
     onMount(() => {
         // Load saved presets when the component mounts
-        chrome.storage.sync.get('carPresets').then((result: any) => {
-            if (result.carPresets) {
-                carPresets = result.carPresets;
-            }
-        });
+        let result = localStorage.getItem('carPresets')
+        if (result){
+            carPresets = JSON.parse(result)
+        }
         document.onkeydown = (e) => {
             if (e.key == "s" && e.ctrlKey){
                 e.preventDefault()
@@ -23,16 +22,11 @@
 
     function savePresets() {
         carPresets.sort((a, b) => a.name.localeCompare(b.name));
-        let toSave = {
-            // Filter out any empty name rows before saving
-            carPresets: carPresets.filter(p => p.name.trim() !== ''),
-        }
-        chrome.storage.sync.set($state.snapshot(toSave)).then(() => {
-            statusText = 'Car presets saved.';
-            setTimeout(() => { statusText = ''; }, 1500);
-            // chrome.storage.sync.remove('scrapedData');
-            chrome.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
-        });
+        carPresets = carPresets.filter(p => p.name.trim() !== ''),
+        localStorage.setItem("carPresets", JSON.stringify($state.snapshot(carPresets)))
+        statusText = 'Car presets saved.';
+        setTimeout(() => { statusText = ''; }, 1500);
+        ['selectedCarName', 'selectedCarCost', 'selectedCarLife'].forEach(x => localStorage.removeItem(x))
     }
 
     function addCar() {

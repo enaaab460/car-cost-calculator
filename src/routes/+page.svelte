@@ -2,7 +2,8 @@
     import { Chart } from "chart.js/auto"
     import type { ChartConfiguration } from "chart.js/auto"
 	import { onMount } from "svelte";
-    import type { SelectorConfig, CarPreset } from "$lib";
+    import type { CarPreset } from "$lib";
+    import { goto } from "$app/navigation";
 
     interface CarPoint {
         age: number;
@@ -34,60 +35,42 @@
 
     let depreciationChart: Chart | null = $state(null);
     let depreciationCanvas = $state<HTMLCanvasElement>()
-    let regressionChart: Chart | null = null;
-    let regressionCanvas = $state<HTMLCanvasElement>()
-    let resultText = $state("")
-    let regressionDataUrl = $state<string | null>(null)
-    // let scrapedMultiple = $state<CarPoint[]>([])
-
-    // let domain = $state("")
-    let tab: chrome.tabs.Tab
-    let singleExist = $state(false)
-    let multipleExist = $state(false)
     let resultElement = $state<HTMLElement>()
-    // let alwaysSort = $state(false)
+    let resultText = $state("")
 
-    onMount(async () => {
-        const keys = ['yearlyOdometer', 'haggle', 'typicalLife', 'carPresets', 'scrapedSingle','selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'selectorConfigs', 'alwaysSort'];
-        const result = await chrome.storage.sync.get(keys) as any
-        if (!result) return
-        if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
-        else openOptionsPage()
-        if (result.haggle) haggle = result.haggle;
-        if (result.typicalLife) typicalLife = result.typicalLife;
-        if (result.carPresets) carPresets = result.carPresets;
-        if (result.selectedCarName) name = result.selectedCarName;
-        if (result.selectedCarCost) cost = result.selectedCarCost;
-        if (result.selectedCarLife) typicalLife = result.selectedCarLife;
-        if (result.currentyear) currentyear = result.currentyear;
+    onMount(() => {
+        var result = localStorage.getItem('settings')
+        if (!result) {
+            goto("options.html")
+            return
+        }
+        ({yearlyOdometer, haggle, typicalLife, currentyear} = JSON.parse(result))
+        result = localStorage.getItem('carPresets')
+        if (result) carPresets = JSON.parse(result)
+        else carPresets = []
 
-        if (result.scrapedSingle && result.scrapedSingle.year){
-            console.debug(result.scrapedSingle)
-            year = result.scrapedSingle.year - 2000;
-            odometer = result.scrapedSingle.odometer / 1000;
-            price = result.scrapedSingle.price / 1000;
-            runCalculation()
+        result = localStorage.getItem('selectedCar')
+        if (result){
+            ({name, cost, typicalLife} = JSON.parse(result))
+        }
+        result = localStorage.getItem('scrapedSingle')
+        if (result){
+            var r = JSON.parse(result)
+            if (r){
+                if (r.year) year = r.year - 2000
+                if (r.odometer) odometer = r.odometer / 1000
+                if (r.price) price = r.price / 1000
+                runCalculation()
+            }
         } else if (cost && typicalLife){
             drawDepreciationChart()
         }
-        const resultLocal = await chrome.storage.local.get('scrapedMultiple') as any
-        if (resultLocal.scrapedMultiple && resultLocal.scrapedMultiple[0]?.price){
-            drawRegressionChart(resultLocal.scrapedMultiple)
-        }
-
-        [tab] = await chrome.tabs.query({active: true, currentWindow: true})
-        if (!tab) return
-        let tabUrl = tab.url!
-        if (result.selectorConfigs){
-            singleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'single') != null
-            multipleExist = result.selectorConfigs.find((x:any) => tabUrl.includes(x.domain) && x.calculationMode == 'multiple') != null
-        }
-        });
+    })
 
     function clearSelectedCar(){
         name = ''
-        chrome.storage.local.remove('scrapedMultiple');
-        chrome.storage.sync.remove(['selectedCarName','scrapedSingle'])
+        localStorage.removeItem('selectedCar')
+        localStorage.removeItem('scrapedSingle')
         resetResult()
     }
 
@@ -101,7 +84,6 @@
             clearSelectedCar()
             return;
         }
-        chrome.storage.local.remove(['scrapedMultiple']);
         resetResult()
         const lowerCaseName = name.toLowerCase();
         const matchingPreset = carPresets.find(p => p.name.toLowerCase() === lowerCaseName);
@@ -111,9 +93,9 @@
             if (matchingPreset.msrp > 0) {
                 cost = matchingPreset.msrp;
             }
-            chrome.storage.sync.set({ selectedCarName: name, selectedCarCost: cost, selectedCarLife: typicalLife });
+            localStorage.setItem("selectedCar", JSON.stringify({name, cost, typicalLife}))
         } else {
-            chrome.storage.sync.remove(['selectedCarName', 'selectedCarCost', 'selectedCarLife']);
+            localStorage.removeItem('selectedCar')
         }
         drawDepreciationChart()
     }
@@ -220,7 +202,6 @@
                             }
                         }
                     },
-               
                 },
                 maintainAspectRatio:false
             }
@@ -241,127 +222,7 @@
         if (!year || !odometer) return
         var scrapedSingle: any = {year: year + 2000, odometer: odometer * 1000}
         if (price) scrapedSingle.price = price * 1000
-        chrome.storage.sync.set({"scrapedSingle": scrapedSingle})
-    }
-
-    // GEMINI
-    function calculateRegressionLine(data: Point[]) {
-        const n = data.length;
-        let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-
-        data.forEach(point => {
-            sumX += point.x;
-            sumY += point.y;
-            sumXY += point.x * point.y;
-            sumX2 += point.x * point.x;
-        });
-
-        const meanX = sumX / n;
-        const meanY = sumY / n;
-
-        // Calculate Slope (m)
-        const numerator = (n * sumXY) - (sumX * sumY);
-        const denominator = (n * sumX2) - (sumX * sumX);
-        const m = numerator / denominator; // Slope (Central Gradient)
-
-        // Calculate Y-intercept (b)
-        const b = meanY - (m * meanX);
-
-        // Get the min and max X values to define the line's start and end points
-        const minX = Math.min(...data.map(p => p.x));
-        const maxX = Math.max(...data.map(p => p.x));
-
-        // Create the two points for the trendline dataset: (minX, y=mx+b) and (maxX, y=mx+b)
-        const trendlineData = [
-            { x: minX, y: m * minX + b },
-            { x: maxX, y: m * maxX + b }
-        ];
-
-        return { m, b, trendlineData };
-    }
-
-    // GEMINI Altered
-    function drawRegressionChart(data: CarPoint[]){
-        if (regressionChart) {
-            regressionChart.destroy();
-        }
-        if (!regressionCanvas || !data || !cost || !typicalLife) return
-
-        console.log(data)
-        let scatterData = data.map((x: CarPoint) => ({ x: x.age, y: x.price }))
-
-        const csvHeader =  [...Object.getOwnPropertyNames(data[0])].join(',') + '\n';
-        const csvRows = data.map(d => 
-            [...Object.values(d)].join(',')
-        ).join('\n');
-        const csvData = csvHeader + csvRows;
-        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-        if (regressionDataUrl) {
-            URL.revokeObjectURL(regressionDataUrl);
-        }
-        regressionDataUrl = URL.createObjectURL(blob);
-        const regression = calculateRegressionLine(scatterData);
-        // if (!regression) return
-        const { m, b, trendlineData } = regression;
-        
-        let xAxis = Array.from({ length: typicalLife+1 }, (_, i) => i)
-        let correct = xAxis.map(x => ({x: x, y: cost * 1000 * Math.pow(1 - 2/typicalLife, x)}))
-        let fairRegression = calculateRegressionLine(correct)
-        // if (!fairRegression) return
-        const { m: om, b: ob, trendlineData: otl } = fairRegression
-        const config = {
-            type: 'scatter',
-            data: {
-                datasets: [
-                    {
-                        label: `Data Points (${scatterData.length})`,
-                        data: scatterData,
-                        backgroundColor: 'black',
-                        pointRadius: 2,
-                    },
-                    {
-                        label: `Regression Line (y = (${m.toFixed(0)} * age) + ${b.toFixed(0)})`,
-                        data: trendlineData,
-                        type: 'line', 
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 3,
-                        pointRadius: 0, 
-                    },
-                    {
-                        label: `Fair Slope (y = (${om.toFixed(0)} * age) + ${ob.toFixed(0)})`,
-                        data: otl,
-                        type: 'line', 
-                        borderColor: 'cyan',
-                        borderWidth: 3,
-                        pointRadius: 0, 
-                    }
-                ]
-            },
-            options: {
-                // responsive: true,
-                scales: {
-                    x: {
-                        title: { display: true, text: 'Age (years)' },
-                        type: 'linear',
-                        position: 'bottom',
-                        suggestedMax: typicalLife
-                    },
-                    y: {
-                        title: { display: true, text: 'Price' },
-                        type: 'linear',
-                        beginAtZero: true,
-                        min: 0
-                    }
-                },
-                maintainAspectRatio: false
-            }
-        } as ChartConfiguration;
-        regressionChart = new Chart(regressionCanvas, config)
-        regressionCanvas.style.height = '30em'
-    }
-
-    function openOptionsPage() {
-        chrome.runtime.openOptionsPage();
+        localStorage.setItem("scrapedSingle", JSON.stringify(scrapedSingle))
     }
 
     function kbb(trim: boolean){
@@ -389,40 +250,17 @@
     }
     
     async function resetResult(){
-        await chrome.storage.sync.remove("scrapedSingle")
         resultText = ""
         if (depreciationCanvas) {
             depreciationCanvas.style.height = '0'
             if (depreciationChart) depreciationChart.destroy()
         }
-        if (regressionCanvas) {
-            regressionCanvas.style.height = '0'
-            if (regressionChart) regressionChart.destroy()
-        }
-        if (regressionDataUrl) {
-            URL.revokeObjectURL(regressionDataUrl);
-            regressionDataUrl = null;
-        }
-    }
-
-    async function scrapeMultiple(append: boolean){
-        year = null
-        odometer = null
-        price = null
-        // resetResult()
-        var res:CarPoint[]
-        if (append) res = await chrome.runtime.sendMessage(["get-car-data-multiple-append", tab])
-        else res = await chrome.runtime.sendMessage(["get-car-data-multiple", tab])
-        if (res.length > 0){
-            drawDepreciationChart()
-            drawRegressionChart(res)
-        }
     }
 </script>
 <main>
     <div class="header">
-        <button onclick={()=>window.open("/cars.html", "_blank")} title="Car Presets">🚗</button>
-        <button onclick={()=>window.open("/options.html", "_blank")} title="Settings">⚙️</button>
+        <button onclick={()=>goto("/cars.html")} title="Car Presets">🚗</button>
+        <button onclick={()=>goto("/options.html")} title="Settings">⚙️</button>
     </div>
     <div class="block">
         <div>
@@ -435,8 +273,8 @@
                 </select>
             </label>
         </div>
-        <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarCost":cost})}></label></div>
-        <div><label title={`${typicalLife*yearlyOdometer}k`}><span>Expected Lifespan</span><input type="number" bind:value={typicalLife} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":typicalLife})}></label></div>
+        <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>localStorage.setItem("selectedCar", JSON.stringify({name, cost, typicalLife}))}></label></div>
+        <div><label title={`${typicalLife*yearlyOdometer}k`}><span>Expected Lifespan</span><input type="number" bind:value={typicalLife} oninput={clearSelectedCar} onchange={()=>localStorage.setItem("selectedCar", JSON.stringify({name, cost, typicalLife}))}></label></div>
     </div>
     <div class="block">
         <!-- svelte-ignore a11y_autofocus -->
@@ -478,43 +316,20 @@
             </div>
         {/if}
     {/if}
-    <div class="mb-1">
-        {#if singleExist}
-            <button onclick={async ()=> {
-                // await resetResult()
-                let res = await chrome.runtime.sendMessage(["get-car-data-single", tab])
-                if (res){
-                    year = res.year - 2000
-                    odometer = res.odometer / 1000
-                    price = res.price / 1000
-                    runCalculation()
-                }
-            }}>Single Car</button>
-        {:else}
-            <button onclick={()=> chrome.runtime.sendMessage(["get-red-flags", tab])}>Red Flags</button>
-        {/if}
-        {#if multipleExist}
-            <button onclick={async () => await scrapeMultiple(false)}
-            oncontextmenu={async (e)=> {e.preventDefault(); await scrapeMultiple(true)}}>Multiple Cars</button>
-            <button onclick={()=>chrome.runtime.sendMessage(["sort-cars", tab])}>Sort</button>
-        {/if}
-    </div>
     {#if !(year != null || odometer != null)}
         <div>
             <span>Please fill the fields to calculate or use the quick actions</span>
         </div>
     {/if}
-    <div><canvas bind:this={depreciationCanvas} style="height:0; width: 10em;"></canvas></div>
-    <div><canvas bind:this={regressionCanvas} style="height:0; width: 10em;"></canvas></div>
-    {#if regressionDataUrl && name}
-        <a href={regressionDataUrl} download={`${name}_data_${Math.floor(Date.now() / 1000)}.csv`}>Download Data</a>
-    {/if}
+    <div><canvas bind:this={depreciationCanvas} style="height:0; width: 5em;"></canvas></div>
 </main>
 
 
 <style>
     main {
         padding: 1em;
+        width: 30em;
+        margin: auto;
     }
     .header {
         display: flex;

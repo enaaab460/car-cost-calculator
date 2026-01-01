@@ -2,7 +2,7 @@
 
 Calculator to estimate the cost of used cars using double-declining balance (DDB) depreciation. Modifies supported pages to encode price with suggestions, and orders listings in decreasing order of discount from fair price. Can link to other websites: KBB, edmunds, NICB
 
-There is no backend and no telemetry. Firefox might sync extension data if logged in, for ease of use and persistence of data across devices (computers and Android devices). Not affiliated with any website or service, preloaded in the app or otherwise.
+There is no backend and no telemetry. Not affiliated with any website or service, preloaded in the app or otherwise.
 
 Price is calculated as $$\text{Price} = (1 - 2/\text{life})^\text{years} \cdot \text{new-OTD-price}$$
 
@@ -67,20 +67,6 @@ The default css selector of single mode is `body`, which works fine for the majo
 
 With Version 1.2, `excludeSelector` is added, by right clicking the delete button of the website preset. It allows skipping specific elements from checking for red flags, which was needed for `truecars.com` to exclude the `Recommended for you` section. Red boxes are now permanent, and help locate hidden red flags inside tabs or menus. It might be a better alternative to the previous comma separated `carSelector` elements. Zipcode support for KBB is introduced, but it is not mandatory.
 
-## Multiple mode (Alt-W)
-Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
-Sorting can break the outline of some websites if the car css selector is not perfect, so it is not enabled after every Multiple mode by default. Some deals might be styled as unreasonable when they are simply a higher trim than the preset chosen, so further insight is needed.
-
-With version 1.1, a second regression curve is added to give an overview of the listings and how they compare to a regression curve of the fair price. Right clicking the multiple mode allows appending new results to previous sessions. Aggregate data can be downloaded for further analysis. I am not sure how useful the regression curve of the fair price is, or how it should be interpreted. For the time being, here is how I interpret it, from best to worst case scenario:
-
-* Market line is below fair line.
-
-* Most of the market line is below the fair line.
-
-* Most of the market line is above the fair line.
-
-* Market line is above fair line.
-
 ## Out-the-door price tangent
 MSRP + non-negotiable fees (gorvernmental or dealer, like taxes or destination fees) - incentives.
 Most cars can have >10% incentives, which is the main reason cars are said to lose 10% the moment they are driven off the lot (as new). Brands that do not offer such incentives (namely Toyota) don't have this "issue", which is part of the reason they hold their value more. Other brands have inflate MSRP then offer incentives. Electric cars are also said to lose a lot of their value even if that inflated price was usually not paid, since they offer(ed) significant incentives. Edmunds and KBB can be used as a reference for OTD price in the USA. If days on lot are above target (~75 days for most brands, ~30 days for toyota, in the US), larger incentives might be possible. Ongoing prices should be checked regularly (eg, weekly).
@@ -131,38 +117,17 @@ https://www.fhwa.dot.gov/policyinformation/statistics/2023/vm1.cfm
 
 # Disclaimers (might be superfluous)
 
-Since the extension reads the current tab to skim its data for both single and multiple, it is inherently risky to use on a browser where sensitive data is accesssed (eg, banking, sensitive work, ...). If you are already comfortable with ad-blockers and screen-readers, or use any major social network on the same browser, this disclaimer is meaningless. No data is sent back to any back-end related to me. I have used the minimum number of dependancies I can, and yet I can not vouch for them personally. I can only vouch for what I wrote. NPM supply chain attacks not rare enough.
+No data is sent back to any back-end related to me. I have used the minimum number of dependancies I can, and yet I can not vouch for them personally. I can only vouch for what I wrote. NPM supply chain attacks not rare enough.
 
-This is the first browser extension I wrote. I have some experience in Svelte and JS, and have programmed for many years. But it is not my day job, so not all best practices were followed.
+I have some experience in Svelte and JS, and have programmed for many years. But it is not my day job, so not all best practices were followed.
 
 AI assisted in writing this extension, namely free Gemini 2.5 and chatgpt-5 in vscode. All code was revised and tested (to the best of my ability). Vibe-coding was attempted at multiple points, with varying degrees of success. It helped alot at figuring out the correct chrome apis and chartjs apis I needed, but was very frustrating at times and I had to roll back many prompts and write them myself. Aiding in bug fixes was more useful.
 
 I am not in the automotive industry, many statements made in this post were read or heard online, and should be taken with a grain of salt.
 
-# How to install:
-
-## from firefox extensions marketplace:
-https://addons.mozilla.org/en-US/firefox/addon/car-cost-calculator/
-
-## from release:
-extract the zip file, navigate to `about:debugging#/runtime/this-firefox` in firefox, temporarily load addon, select `manifest.json`
-
-## from source:
-run `npm install` then `npm run build` in root directory, then navigate to `about:debugging#/runtime/this-firefox` in firefox, temporarily load addon, select `manifest.json` from `build/firefox`
-
-PRs to acheive TODO.md would be greatly appreciated.
-
-## Android specific notes
-
-To install from source or release, google how to debug firefox android extensions.
-
-Right click features, scrolling to red flags, and hovering over price to check more data can't work due to platform limitation.
-
 # Acknowledgements / Dependencies:
 
 Sveltekit: https://github.com/sveltejs/kit
-
-Sveltekit extension adapter: https://github.com/michmich112/sveltekit-adapter-chrome-extension
 
 chartjs: https://github.com/chartjs/Chart.js
 
