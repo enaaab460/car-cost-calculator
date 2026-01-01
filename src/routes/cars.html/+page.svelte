@@ -8,7 +8,7 @@
 
     onMount(() => {
         // Load saved presets when the component mounts
-        chrome.storage.sync.get(['carPresets', 'typicalLife']).then((result: any) => {
+        chrome.storage.sync.get(['carPresets','typicalLife']).then((result: any) => {
             if (result.carPresets) carPresets = result.carPresets;
             if (result.typicalLife) typicalLife = result.typicalLife;
         });
