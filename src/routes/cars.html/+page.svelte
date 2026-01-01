@@ -8,9 +8,14 @@
 
     onMount(() => {
         // Load saved presets when the component mounts
-        let result = localStorage.getItem('carPresets')
+        var result = localStorage.getItem('carPresets')
         if (result){
             carPresets = JSON.parse(result)
+        }
+        result = localStorage.getItem("settings")
+        if (result){
+            let r = JSON.parse(result)
+            typicalLife = r.typicalLife
         }
         document.onkeydown = (e) => {
             if (e.key == "s" && e.ctrlKey){
@@ -26,7 +31,7 @@
         localStorage.setItem("carPresets", JSON.stringify($state.snapshot(carPresets)))
         statusText = 'Car presets saved.';
         setTimeout(() => { statusText = ''; }, 1500);
-        ['selectedCarName', 'selectedCarCost', 'selectedCarLife'].forEach(x => localStorage.removeItem(x))
+        localStorage.removeItem("selectedCar")
     }
 
     function addCar() {

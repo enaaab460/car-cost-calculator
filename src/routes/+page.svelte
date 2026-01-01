@@ -41,6 +41,7 @@
     onMount(() => {
         var result = localStorage.getItem('settings')
         if (!result) {
+            alert("Settings not initialised, redirecting to options.html")
             goto("options.html")
             return
         }
@@ -321,14 +322,14 @@
             <span>Please fill the fields to calculate or use the quick actions</span>
         </div>
     {/if}
-    <div><canvas bind:this={depreciationCanvas} style="height:0; width: 5em;"></canvas></div>
+    <div><canvas bind:this={depreciationCanvas} style="height:0;"></canvas></div>
 </main>
 
 
 <style>
     main {
         padding: 1em;
-        width: 30em;
+        width: 22em;
         margin: auto;
     }
     .header {
@@ -348,7 +349,6 @@
         border-image: initial;
     }
     div.block{
-        /* width: 30em; */
         border: 1px red solid;
         margin-bottom: 1em;
     }

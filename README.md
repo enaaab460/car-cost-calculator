@@ -1,6 +1,6 @@
 # Intro
 
-Calculator to estimate the cost of used cars using double-declining balance (DDB) depreciation. Modifies supported pages to encode price with suggestions, and orders listings in decreasing order of discount from fair price. Can link to other websites: KBB, edmunds, NICB
+Calculator to estimate the cost of used cars using double-declining balance (DDB) depreciation. Can link to other websites: KBB, edmunds.
 
 There is no backend and no telemetry. Not affiliated with any website or service, preloaded in the app or otherwise.
 
@@ -13,12 +13,9 @@ where the car is in very good or excellent condition, is very commonly available
 where life is assumed to be around 10 to 20 years, at ~~13.5k~~ 10k miles a year (can be changed in the settings, read Average yearly driven miles Tangent). Research should be done about the reliability of the brand, model, specific years, and the maintenance of the specific car. Sources at the end of the page might be a good starting point. Less reliable cars are closer to 10 years (~~135k~~ 100k miles) and more reliable are closer to 20 years (~~270k~~ 200k miles), assuming excellent condition and maintenance. Life is not simply the expected lifespan of the drivetrain. A running car can be also be totaled if it needs expensive repairs (relative to the remaining value of the car) or if parts are no longer available. Rust rots and condition of interior and exterior degrades with time regardless of miles. Even though there are exceptions, turbos, cvts, hybrid/battery systems, and head gaskets are common headaches to look out for when researching reliability.
 
 ## Quick notes 
+Extension made with miles in mind, but kilometers were retrofitted but not extensively tested. It was also made with cars beyond the year 2000 but support for 2000 and earlier was retrofitted but not extensively tested.
 
-For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank and Google don't play nice together. It can be sideloaded from the chrome branch.
-
-Extension made with miles and american websites in mind, but kilometers and other websites were retrofitted but not extensively tested. It was also made with cars beyond the year 2000 but support for 2000 and earlier was retrofitted but not extensively tested.
-
-Extension comes preloaded with some US websites, with the option to support more website using css selectors.You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. 
+You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. 
 
 Suggested fair price is merely a mathematical approximation, with no consideration for market factors. 
 
@@ -29,6 +26,8 @@ Double-declining rate allowed mirroring common depreciation rates (after the usu
 OTD price, odometer, and price should be in thousands, i.e. 23 instead of 23000. don't add `k` after the number.
 
 Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years before 2000, use negative numbers, i.e. -3 instead of 1997.
+
+Allows plotting where the car stands relative to the depreciation curve, and price styles. If the name of the car is the same as KBB, then using the KBB button will allow quick access to kbb price estimator. If the trim is also the same, the right clicking will provide 1-click shortcut. Edmunds support is also available but is mainly useful for specs, recalls, and suggested OTD price. Not affiliated with either. When choosing trims, I would recommend either picking the least trim that has all the features you need, or the most popular one.
 
 ## Explanation of price style
 
@@ -53,19 +52,6 @@ Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years bef
 * crossed-out = exceeded its expected life, wheels might fall off tomorrow. Depending on the brand, it might be in "good" shape, but expensive to repair (relative to actual car value).
 
 15% default haggle is almost too much, but it increases the range of cyan and purple. It can be changed in the settings. Not reaching the fair price does not necessarily mean a bad deal. It is all relative to your car market. KBB can be used to verify the fair price for a particular model, trim, year, and mileage, but many think that KBB prices are too optimistic (at the time of writing this). 
-
-Hovering over the price in either mode will show a brief summary of the car discount, fair price, and calculated age.
-
-## Single Mode (Alt-Q)
-Allows plotting where the car stands relative to the depreciation curve, and price styles. If the css selectors of the website are registered, it will automatically parse it for the year, miles and price. It can be still be used standalone without registering the website. If the name of the car is the same as KBB, then using the KBB button will allow quick access to kbb price estimator. If the trim is also the same, the right clicking will provide 1-click shortcut. Edmunds support is also available but is mainly useful for specs, recalls, and suggested OTD price. Not affiliated with either. When choosing trims, I would recommend either picking the least trim that has all the features you need, or the most popular one. 
-
-The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the service chosen in the settings. 
-
-If the website is not registered, it will be replaced by a `Red Flags` button that only checks for red flags.
-
-The default css selector of single mode is `body`, which works fine for the majority of websites. If you are getting a lot of false positives for red flags, you might choose a more specific css selector that contains both the essential listing details (year, odometer, price) and description (accidents, title, ...). If there is no single element that contains them both, you can use the css selectors of both elements joined by a comma (eg, cars.com single mode css selector does this: `.basics-content-wrapper,.listing-overview`). If the essential listing details are not in single (larger) element, the operation will fail. This might be finicky and you might end up using `body` in the end.
-
-With Version 1.2, `excludeSelector` is added, by right clicking the delete button of the website preset. It allows skipping specific elements from checking for red flags, which was needed for `truecars.com` to exclude the `Recommended for you` section. Red boxes are now permanent, and help locate hidden red flags inside tabs or menus. It might be a better alternative to the previous comma separated `carSelector` elements. Zipcode support for KBB is introduced, but it is not mandatory.
 
 ## Out-the-door price tangent
 MSRP + non-negotiable fees (gorvernmental or dealer, like taxes or destination fees) - incentives.
@@ -124,6 +110,14 @@ I have some experience in Svelte and JS, and have programmed for many years. But
 AI assisted in writing this extension, namely free Gemini 2.5 and chatgpt-5 in vscode. All code was revised and tested (to the best of my ability). Vibe-coding was attempted at multiple points, with varying degrees of success. It helped alot at figuring out the correct chrome apis and chartjs apis I needed, but was very frustrating at times and I had to roll back many prompts and write them myself. Aiding in bug fixes was more useful.
 
 I am not in the automotive industry, many statements made in this post were read or heard online, and should be taken with a grain of salt.
+
+# How to install:
+
+## run online:
+https://car-cost-calculator.pages.dev/
+
+## from source locally:
+run `npm install` then `npm run dev` in root directory, then browse `http://localhost:5173/`
 
 # Acknowledgements / Dependencies:
 

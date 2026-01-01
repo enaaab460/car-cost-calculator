@@ -15,22 +15,6 @@
         // Load saved settings when the component mounts
         var settings = localStorage.getItem("settings")
         if (settings) ({yearlyOdometer, haggle, typicalLife, currentyear} = JSON.parse(settings))
-        // var result = localStorage.getItem("yearlyOdometer")
-        // if (result){
-        //     yearlyOdometer = parseInt(result)
-        // }
-        // result = localStorage.getItem("haggle")
-        // if (result){
-        //     haggle = parseInt(result)
-        // }
-        // result = localStorage.getItem("typicalLife")
-        // if (result){
-        //     typicalLife = parseInt(result)
-        // }
-        // result = localStorage.getItem("currentyear")
-        // if (result){
-        //     currentyear = parseInt(result)
-        // }
         document.onkeydown = (e) => {
             if (e.key == "s" && e.ctrlKey){
                 e.preventDefault()
@@ -41,21 +25,16 @@
 
     function saveSettings() {
         // Filter out any empty domain rows before saving
-        var toSave = {
+        var settings = {
             yearlyOdometer,
             haggle,
             typicalLife,
             currentyear,
         }
-        localStorage.setItem("settings", JSON.stringify(toSave))
-        // localStorage.setItem("yearlyOdometer",String(yearlyOdometer))
-        // localStorage.setItem("haggle",String(haggle))
-        // localStorage.setItem("typicalLife",String(typicalLife))
-        // localStorage.setItem("currentyear",String(currentyear))
-        // chrome.runtime.sendMessage({action: "saveToStorage", data: $state.snapshot(toSave)});
+        localStorage.setItem("settings", JSON.stringify(settings))
         statusText = 'Options saved.';
         setTimeout(() => { statusText = ''; }, 1500);
-        console.log(toSave)
+        console.log(settings)
     }
 
     async function downloadSettings() {
@@ -93,13 +72,13 @@
                 reader.onload = (event) => {
                     try {
                         var result = JSON.parse(event.target?.result as string)
-                        // ({ yearlyOdometer, haggle, typicalLife, currentyear, selectorConfigs } = settings); 
                         let settings = result.settings
                         if (settings){
-                            yearlyOdometer = settings.yearlyOdometer;
-                            haggle = settings.haggle;
-                            typicalLife = settings.typicalLife;
-                            currentyear = settings.currentyear;
+                            ({ yearlyOdometer, haggle, typicalLife, currentyear } = settings); 
+                            // yearlyOdometer = settings.yearlyOdometer;
+                            // haggle = settings.haggle;
+                            // typicalLife = settings.typicalLife;
+                            // currentyear = settings.currentyear;
                         }
                         let carPresets = result.carPresets
                         localStorage.setItem("carPresets", JSON.stringify(carPresets))
