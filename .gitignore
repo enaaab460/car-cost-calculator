@@ -1,5 +1,6 @@
 node_modules
 src/routes/test
+.git.rar
 
 # Output
 .output
