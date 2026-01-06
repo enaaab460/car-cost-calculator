@@ -4,6 +4,12 @@ type getCarDataModes = "single" | "multiple" | "red-flags"
 type BlackList = { [domain: string]: string[] };
 type ScrapedMultipleUnit = {name: string, link: string ,age: number, price: number, yearsAgo: number, odometer: number, res: number}
 
+interface flagParent extends HTMLElement{
+    flags: Set<string>
+    defColor: string
+    defTitle: string
+}
+
 chrome.runtime.getPlatformInfo().then(({os}) => {
     if (os != "android"){
         chrome.runtime.onInstalled.addListener(() => {
@@ -101,7 +107,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
     let zipcode = result.zipcode as number;
     // let alwaysVinCheck = result.alwaysVinCheck;
     let vinProvider = result.vinProvider as string;
-    const blRes = await chrome.storage.sync.get('blackList') as { blackList?: BlackList };
+    const blRes = await chrome.storage.local.get('blackList') as { blackList?: BlackList };
     let blackList: BlackList = blRes.blackList ?? {};
     let tabURL = new URL(tab.url)
     let domain = `${tabURL.hostname}${tabURL.pathname}`
@@ -164,7 +170,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     retVal = []
                     console.time("blacklist")
                     for (let b of blackList){
-                        let el = document.querySelector(`${thisSelector.carSelector}:has(a[href^="${b}"])`)
+                        let el = document.querySelector(`${thisSelector.carSelector}:has(a[href*="${b}"])`)
                         if (el) {
                             el.remove()
                             remCount++
@@ -195,12 +201,21 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         priceElement.style.fontStyle = "";
                         var year = 0;
                         if (yearElement) {
-                            let parsedYear = yearElement.textContent.match(/\d+/)
+                            let parsedYear = yearElement.textContent.match(/[\d]{4}/)
                             if (parsedYear) year = parseInt(parsedYear[0]);
-                            if (year < 1950 || year > currentyear + 1) return
+                            if (year < 1950 || year > currentyear + 1) {
+                                console.error(`Unsupported year ${year}`)
+                                return
+                            }
                         }
-                        const priceMatch = priceElement.textContent.replaceAll(',', '').match(/\$?(\d+)(\.\d+)?/);
-                        if (!priceMatch) return;
+                        var priceMatch = priceElement.textContent.replaceAll(',', '').match(/\$(\d+)(\.\d+)?/);
+                        if (!priceMatch) {
+                            priceMatch = priceElement.textContent.replaceAll(',', '').match(/\$?(\d+)(\.\d+)?/);
+                        }
+                        if (!priceMatch) {
+                            console.error(`priceMatch not found in ${el}`);
+                            return
+                        }
                         const price = parseInt(priceMatch[1]);
                         var odometer = 0;
                         if (odometerElement) {
@@ -211,7 +226,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                                 odometer = parseInt(odometerMatch[1]);
                                 if (odText.search(/k(?!m)/) != -1) odometer = odometer * 1000;
                             }
-                            
                         }
                         var old = 0
                         if (year && odometer) old = ((currentyear - year) + (odometer / yearlyOdometer)) / 2;
@@ -293,8 +307,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 let redFlagsArray = redFlags.replace(/[.*+?^${}()|[\]]/g, '\\$&').toLowerCase().split(/ ?, ?/)
                 var flags = new Set()
                 const redFlagsRegex = new RegExp(redFlagsArray.filter(Boolean).join('|'), 'gi');
-                const baseExcludeSelectors = 'script, style, .ext-redFlags';
+                const baseExcludeSelectors = 'script, style, #ext-stats';
                 const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector}` : baseExcludeSelectors;
+                document.querySelector("#ext-stats")?.remove()
+                // Walker GEMINI (modified)
                 function processNode(node: Node) {
                     const text = node.textContent;
                     if (!text || !text.trim()) return;
@@ -302,19 +318,20 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const matches = text.toLowerCase().match(redFlagsRegex);
                     if (!matches) return;
 
-                    const parent = node.parentElement;
+                    const parent = node.parentElement as flagParent | null;
                     if (!parent) return;
 
                     if (parent.closest(excludeSelector)) return;
-                    let parentFlags = new Set()
+                    let parentFlags = new Set(parent.flags)
                     for (const match of matches) {
                         const flag = match.toLowerCase();
                         flags.add(flag);
                         parentFlags.add(flag);
                     }
-                    Object.defineProperty(parent, 'flags', {value: Array.from(parentFlags)});
-                    Object.defineProperty(parent, 'defColor', {value: parent.style.color});
-                    Object.defineProperty(parent, 'defTitle', {value: parent.title});
+
+                    parent.flags = parentFlags
+                    parent.defColor = parent.style.color
+                    parent.defTitle = parent.title
                     parent.style.setProperty("color", "red", "important");
                     parent.classList.add("ext-redFlags");
                     parent.title = Array.from(parentFlags).join(', ');
@@ -328,22 +345,19 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 }
                 console.timeEnd("redFlags");
                 document.addEventListener('contextmenu', function handleContextMenu(e) {
-                    const flaggedElement = (e.target! as HTMLElement).closest('.ext-redFlags') as HTMLElement;
+                    const flaggedElement = (e.target! as HTMLElement).closest('.ext-redFlags') as flagParent | null;
                     if (flaggedElement) {
                         e.preventDefault();
-                        flaggedElement.style.color = Object.getOwnPropertyDescriptor(flaggedElement,'defColor')?.value as string;
-                        flaggedElement.title = Object.getOwnPropertyDescriptor(flaggedElement,'defTitle')?.value as string;
+                        flaggedElement.style.color = flaggedElement.defColor
+                        flaggedElement.title = flaggedElement.title
                         flaggedElement.classList.remove("ext-redFlags");
                     }
                 });
-                var myStats = document.querySelector('#ext-stats') as HTMLElement
-                if (!myStats) {
-                    myStats = document.createElement("div")
-                    myStats.id = "ext-stats"
-                    myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
-                    // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
-                    document.querySelector("body")!.append(myStats)
-                }
+                let myStats = document.createElement("div")
+                myStats.id = "ext-stats"
+                myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
+                // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
+                document.querySelector("body")!.append(myStats)
                 if (flags.size > 0){
                     retVal = Array.from(flags)
                     let msg = `Red Flags: ${retVal}`
@@ -369,29 +383,24 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 let vin = document.querySelector(thisSelector.carSelector).innerText.match(/\b[\w\d]{17}\b/)
                 if (vin){
                     vin = vin[0]
-                    var check = document.getElementById("ext-checkTitle") as HTMLAnchorElement | null
-                    if (!check){
-                        check = document.createElement("a")
-                        check.style.display = "block"
-                        check.textContent = "Check Title"
-                        check.id = "ext-checkTitle"
-                        check.href = vinProvider.replace("%s",vin)
-                        check.target = "_blank"
-                        myStats.append(check)
-                    }
-                    var kbb = document.getElementById("ext-checkKBB") as HTMLAnchorElement | null
-                    if (!kbb){
-                        kbb = document.createElement("a")
-                        kbb.style.display = "block"
-                        kbb.textContent = "Check KBB"
-                        kbb.id = "ext-checkKBB"
-                        kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}&zipcode=${zipcode}`
-                        kbb.target = "_blank"
-                        myStats.append(kbb)
-                    }
+                    let check = document.createElement("a")
+                    check.style.display = "block"
+                    check.textContent = "Check Title"
+                    check.id = "ext-checkTitle"
+                    check.href = vinProvider.replace("%s",vin)
+                    check.target = "_blank"
+                    myStats.append(check)
+                    let kbb = document.createElement("a")
+                    kbb.style.display = "block"
+                    kbb.textContent = "Check KBB"
+                    kbb.id = "ext-checkKBB"
+                    kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}&zipcode=${zipcode}`
+                    kbb.target = "_blank"
+                    myStats.append(kbb)
                     // if (alwaysVinCheck) check.click()
                 }
-                for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax.com"],a[href*="autocheck.com"]')){
+                for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
+                    // if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
                     let grandParent = e.parentElement as HTMLElement
                     while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement!
                     if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
@@ -458,7 +467,7 @@ async function blackListLink(link: string, tab: chrome.tabs.Tab){
     if (!blackList) blackList = {}
     if (!blackList[domain]) blackList[domain] = []
     if (!blackList[domain].includes(cleanLink)) blackList[domain].push(cleanLink)
-    await chrome.storage.sync.set({blackList: blackList})
+    await chrome.storage.local.set({blackList: blackList})
     let thisSelector = selectorConfigs.find((x: SelectorConfig) => tab.url?.includes(x.domain) && x.calculationMode == "multiple");
     if (!thisSelector) return
     await chrome.scripting.executeScript({target: { tabId: tab.id! },func: (thisSelector: any, link: string)=>{

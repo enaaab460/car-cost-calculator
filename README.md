@@ -14,9 +14,9 @@ where life is assumed to be around 10 to 20 years, at ~~13.5k~~ 10k miles a year
 
 ## Quick notes 
 
-For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank and Google don't play nice together. It can be sideloaded from the chrome branch.
+For the time being, the extension will not be on chrome extension storeplace, as creating a developer account requires a fee (the nerve of those guys), and my bank and Google don't play nice together. It can be sideloaded from the releases. There is also an online calculator on https://car-cost-calculator.pages.dev/, but it is too basic.
 
-Extension made with miles and american websites in mind, but kilometers and other websites were retrofitted but not extensively tested. It was also made with cars beyond the year 2000 but support for 2000 and earlier was retrofitted but not extensively tested.
+Extension made with miles and american websites in mind, but kilometers and other websites were retrofitted. It was also made with cars beyond the year 2000 but support for 2000 and earlier was retrofitted.
 
 Extension comes preloaded with some US websites, with the option to support more website using css selectors.You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. 
 
@@ -27,6 +27,8 @@ Double-declining rate allowed mirroring common depreciation rates (after the usu
 ## Simple calculator notes
 
 OTD price, odometer, and price should be in thousands, i.e. 23 instead of 23000. don't add `k` after the number.
+
+Hovering over year and odometer shows calculated age of car from each metric. Hovering over lifespan shows expected odometer at end of life.
 
 Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years before 2000, use negative numbers, i.e. -3 instead of 1997.
 
@@ -52,7 +54,7 @@ Model year should be beyond 2000, i.e. 05 instead of 2005. If you need years bef
 
 * crossed-out = exceeded its expected life, wheels might fall off tomorrow. Depending on the brand, it might be in "good" shape, but expensive to repair (relative to actual car value).
 
-15% default haggle is almost too much, but it increases the range of cyan and purple. It can be changed in the settings. Not reaching the fair price does not necessarily mean a bad deal. It is all relative to your car market. KBB can be used to verify the fair price for a particular model, trim, year, and mileage, but many think that KBB prices are too optimistic (at the time of writing this). 
+15% default haggle is almost too much, but it increases the range of cyan and purple. It can be changed in the settings. Not reaching the fair price does not necessarily mean a bad deal. It is all relative to your car market. It is said that margins are too narrow in used car dealerships for a 15% discount, so might need to aim lower. KBB can be used to verify the fair price for a particular model, trim, year, and mileage, but many think that KBB prices are too low. I could not integrate Carfax Value, but many think that it is too high.
 
 Hovering over the price in either mode will show a brief summary of the car discount, fair price, and calculated age.
 
@@ -68,7 +70,7 @@ The default css selector of single mode is `body`, which works fine for the majo
 With Version 1.2, `excludeSelector` is added, by right clicking the delete button of the website preset. It allows skipping specific elements from checking for red flags, which was needed for `truecars.com` to exclude the `Recommended for you` section. Red boxes are now permanent, and help locate hidden red flags inside tabs or menus. It might be a better alternative to the previous comma separated `carSelector` elements. Zipcode support for KBB is introduced, but it is not mandatory.
 
 ## Multiple mode (Alt-W)
-Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). If might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
+Should be used for the same car model, and if possible, include only the trims acceptable. Sorting then allows to ordering which listings should be looked at first. Even if the estimated price is wrong, the discounted amount relative to the age of the car would still be the same (if trims are accounted for before). It might be frustrating, since the most discounted cars are also the most likely to have a problem warranting a discount. Unfavorable listings can be blacklisted from the context menu (right click menu).
 Sorting can break the outline of some websites if the car css selector is not perfect, so it is not enabled after every Multiple mode by default. Some deals might be styled as unreasonable when they are simply a higher trim than the preset chosen, so further insight is needed.
 
 With version 1.1, a second regression curve is added to give an overview of the listings and how they compare to a regression curve of the fair price. Right clicking the multiple mode allows appending new results to previous sessions. Aggregate data can be downloaded for further analysis. I am not sure how useful the regression curve of the fair price is, or how it should be interpreted. For the time being, here is how I interpret it, from best to worst case scenario:
@@ -81,12 +83,14 @@ With version 1.1, a second regression curve is added to give an overview of the 
 
 * Market line is above fair line.
 
+If the curve is less steep than fair curve, then the market judged the car's lifespan to be longer than what you set (in years or miles or yearlymiles). If cars were had above MSRP (covid or otherwise), the curve would be shifted upward. That said, the listings visible are those that have not sold yet, which are more likely to be the worse value, skewing the average up.
+
 ## Out-the-door price tangent
 MSRP + non-negotiable fees (gorvernmental or dealer, like taxes or destination fees) - incentives.
 Most cars can have >10% incentives, which is the main reason cars are said to lose 10% the moment they are driven off the lot (as new). Brands that do not offer such incentives (namely Toyota) don't have this "issue", which is part of the reason they hold their value more. Other brands have inflate MSRP then offer incentives. Electric cars are also said to lose a lot of their value even if that inflated price was usually not paid, since they offer(ed) significant incentives. Edmunds and KBB can be used as a reference for OTD price in the USA. If days on lot are above target (~75 days for most brands, ~30 days for toyota, in the US), larger incentives might be possible. Ongoing prices should be checked regularly (eg, weekly).
 
 ## Toyota Tangent
-Even if many toyotas regularly exceed 250k miles, this should not taken for granted. In the iseecars article below, most of their models reach 250k miles less than 20% of the time. Since they sell millions of cars, 20% of that is still millions, but many more won't reach that number. Some models and years had engine problems and needed recalls, like all manufacturers. They are the most reliable for sure, but not bullet-proof, and not barely broken in at 100k miles. Especially if you don't know how it was taken care of. Even if the drivetrain is alright, because the rest of the car might not, the car can be totaled regardless. It is fair to estimate the lifespan of their good models (not the GR86/BRZ, oil burning 2010 camry,...) to be 20 years, what I have found that many facebook marketplace judge corolla's depreciation as if they last 30+ years (or they were bought above MSRP). That said, many others still follow the curve of 20 year lifespan. ~40% of tacomas exceed 250k miles, according to the same article. But there are (relatively) many callbacks of toyota cars and trucks recently so avoid blind brand loyalty, and research individual models.
+Even if many toyotas regularly exceed 250k miles, this should not taken for granted. In the iseecars article below, most of their models reach 250k miles less than 20% of the time. Since they sell millions of cars, 20% of that is still millions, but many more won't reach that number. Some models and years had engine problems and needed recalls, like all manufacturers. They are the most reliable for sure, but not bullet-proof, and not barely broken in at 100k miles. Especially if you don't know how it was taken care of. Even if the drivetrain is alright, because the rest of the car might not, the car can be totaled regardless. It is fair to estimate the lifespan of their good models (not the GR86/BRZ, oil burning 2009 camry,...) to be 20 years, what I have found that many facebook marketplace judge corolla's depreciation as if they last 30+ years (or they were bought above MSRP). That said, many others still follow the curve of 20 year lifespan. ~40% of tacomas exceed 250k miles, according to the same article. But there are (relatively) many callbacks of toyota cars and trucks recently so avoid blind brand loyalty, and research individual models.
 
 ## Depreciation Tangent
 If most cars are way above the depreciation curve, this could mean that the lifespan estimated is smaller than what the market agreed upon. The lifespan you chose might have been too conservative (eg, 10 years for a corolla), or because they believe that these cars hold their value (limited-production cars tend to hold their value, or even appreciate). If a car has lots of miles and is regularly only slightly cheaper than new, maybe buying it new makes more sense. It will be in better shape, you will have warranty (and peace of mind), you will know its maintanence exactly, and will have better finance and insurance rates. If you can't beat them, join them.
@@ -105,7 +109,7 @@ Clean title cars can also have unwelcome surprises, since repairs done outside i
 
 ## Average yearly driven miles Tangent
 
-The 13.5k miles a year is average of all drivers and all driving, personal and commercial. Meaning taxi, cargo trucks, and other business vehicles push the average up. I could not find a source for median distance driven personally. If we consider that the average commute is 30 miles round trip a day, it would add up to 7.6k miles a year. But not all personal driving is commuting, so it is not the best metric either. Another metric is the difference between mens' (16.5k) and womens' (10.1k) yearly distance. If we estimate that women are less likely to drive commercially than men, their yearly miles might better reflect average personal driving. Most leases are also 10k miles/year or less. Another metric would be the FHWA 2023 VMT, which puts the average miles travelled for light duty vehicles with short wheel base at 11k miles/year (including commercial). All subsitute metrics would decrease cars' value at 100k miles compared to the original 13.5k miles/year (less miles/year == more years' worth of depreciation/wear for a given distance). It is even more convoluted when we consider that city miles cause more wear than highway miles.
+The 13.5k miles a year is average of all drivers and all driving, personal and commercial. Meaning taxi, cargo trucks, and other business vehicles push the average up. I could not find a source for median distance driven personally. If we consider that the average commute is 30 miles round trip a day, it would add up to 7.6k miles a year. But not all personal driving is commuting, so it is not the best metric either. Another metric is the difference between mens' (16.5k) and womens' (10.1k) yearly distance. If we assume that women are less likely to drive commercially than men, their yearly miles might better reflect average personal driving. Most leases are also 10k miles/year or less. Another metric would be the FHWA 2023 VMT, which puts the average miles travelled for light duty vehicles with short wheel base at 11k miles/year (including commercial). All subsitute metrics would decrease cars' value at 100k miles compared to the original 13.5k miles/year (less miles/year == more years' worth of depreciation/wear for a given distance). It is even more convoluted when we consider that city miles cause more wear than highway miles. If you are looking for a work vehicle / truck, increasing the yearly odometer more than 10k may be important.
 
 ### Sources:
 
@@ -154,9 +158,9 @@ PRs to acheive TODO.md would be greatly appreciated.
 
 ## Android specific notes
 
-To install from source or release, google how to debug firefox android extensions.
+To install from source or release, google how to debug firefox android extensions (need web-ext and adb).
 
-Right click features, scrolling to red flags, and hovering over price to check more data can't work due to platform limitation.
+Right click features, scrolling to red flags, and hovering can't work due to platform limitation.
 
 # Acknowledgements / Dependencies:
 

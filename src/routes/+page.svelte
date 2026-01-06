@@ -152,6 +152,10 @@
         + `<br>${resultText}`
 
         drawDepreciationChart()
+
+        var scrapedSingle: any = {year: year + 2000, odometer: odometer * 1000}
+        if (price) scrapedSingle.price = price * 1000
+        chrome.storage.sync.set({"scrapedSingle": scrapedSingle})
     }
 
     function drawDepreciationChart(){
@@ -227,10 +231,6 @@
         } 
         depreciationChart = new Chart(depreciationCanvas, chartOptions)
         depreciationCanvas.style.height = '30em'
-        if (!year || !odometer) return
-        var scrapedSingle: any = {year: year + 2000, odometer: odometer * 1000}
-        if (price) scrapedSingle.price = price * 1000
-        chrome.storage.sync.set({"scrapedSingle": scrapedSingle})
     }
 
     // GEMINI
