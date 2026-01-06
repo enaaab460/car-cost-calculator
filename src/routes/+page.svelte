@@ -152,6 +152,10 @@
         + `<br>${resultText}`
 
         drawDepreciationChart()
+
+        var scrapedSingle: any = {year: year + 2000, odometer: odometer * 1000}
+        if (price) scrapedSingle.price = price * 1000
+        chrome.storage.sync.set({"scrapedSingle": scrapedSingle})
     }
 
     function drawDepreciationChart(){
@@ -227,10 +231,6 @@
         } 
         depreciationChart = new Chart(depreciationCanvas, chartOptions)
         depreciationCanvas.style.height = '30em'
-        if (!year || !odometer) return
-        var scrapedSingle: any = {year: year + 2000, odometer: odometer * 1000}
-        if (price) scrapedSingle.price = price * 1000
-        chrome.storage.sync.set({"scrapedSingle": scrapedSingle})
     }
 
     // GEMINI
@@ -368,12 +368,14 @@
         window.open(kbb)
     }
 
-    function edmunds(){
+    function edmunds(yearSearch: boolean){
         if (year == null) return
         let split = name.split(" ")
         let brand = split[0].toLowerCase()
         let cname = split[1].toLowerCase()
-        let edmunds = `https://www.edmunds.com/${brand}/${cname}/${year+2000}/review/`
+        var edmunds = ""
+        if (!yearSearch) edmunds = `https://www.edmunds.com/${brand}/${cname}/review/`
+        else edmunds = `https://www.edmunds.com/${brand}/${cname}/${year+2000}/review/`
         window.open(edmunds)
     }
     
@@ -425,26 +427,21 @@
             </label>
         </div>
         <div><label><span>OTD price (thou)</span><input type="number" bind:value={cost} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarCost":cost})}></label></div>
-        <div><label title={`${typicalLife*yearlyOdometer}k`}><span>Expected Lifespan</span><input type="number" bind:value={typicalLife} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":typicalLife})}></label></div>
+        <div><label title={`${typicalLife*yearlyOdometer}k`}><span>Expected Lifespan</span><input type="number" maxlength=2 bind:value={typicalLife} oninput={clearSelectedCar} onchange={()=>chrome.storage.sync.set({"selectedCarLife":typicalLife})}></label></div>
     </div>
     <div class="block">
         <!-- svelte-ignore a11y_autofocus -->
-        <div><label title={year ? String(currentyear - year - 2000) + "y" : ""}><span>Model Year</span><input type="number" autofocus bind:value={year} oninput={resetResult} oncontextmenu={(e)=> {e.preventDefault(); year = currentyear - 2000}}></label></div>
+        <div><label title={year ? String(currentyear - year - 2000) + "y" : ""}><span>Model Year</span><input type="number" autofocus maxlength=2 bind:value={year} oninput={resetResult} oncontextmenu={(e)=> {e.preventDefault(); year = currentyear - 2000}}></label></div>
         <div><label title={odometer ? (odometer/yearlyOdometer).toFixed(1) + "y" : ""}><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
         <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
-    <!-- {#if cost && typicalLife && !depreciationChart?.canvas}
-        <div class="mb-1">
-            <button onclick={drawDepreciationChart}>Draw Depreciation</button>
-        </div>
-    {/if} -->
     {#if (year != null || odometer != null)}
         {@const spLen = name.split(" ").length}
         <div class="mb-1">
             <button onclick={runCalculation}>Calculate</button>
             {#if spLen > 1}
                 <button onclick={()=>kbb(false)} oncontextmenu={(e)=>{e.preventDefault();kbb(true)}}>KBB</button>
-                <button onclick={edmunds}>Edmunds</button>
+                <button onclick={()=>edmunds(false)} oncontextmenu={(e)=>{e.preventDefault();edmunds(true)}}>Edmunds</button>
             {/if}
         </div>
         {#if resultText}
@@ -467,6 +464,10 @@
                 {@html resultText}
             </div>
         {/if}
+    {:else if (cost && typicalLife && !depreciationChart?.canvas)}
+        <div class="mb-1">
+            <button onclick={drawDepreciationChart}>Draw Depreciation</button>
+        </div>
     {/if}
     <div class="mb-1">
         {#if singleExist}
