@@ -49,10 +49,11 @@
 </script>
 
 <main>
-    <!-- <a href="/" class="back-button">← Back to Calculator</a> -->
+    <a href="/" class="back-button">← Back to Calculator</a>
     <h1>Car Model Presets</h1>
-    <p>Set the OTD price (including destination fees, taxes) in thousands</p>
-    <p>Set the expected lifespan in years</p>
+    <p>Set the Car name in the first box (BRAND MODEL TRIM?) (brand and model names should be hyphenated if multi-part, trim is optional & does not need hypen)</p>
+    <p>Set the OTD price (including destination fees, taxes) in thousands in the second box</p>
+    <p>Set the expected lifespan in years in the third box</p>
 
     {#each carPresets as preset (preset.id)}
         <div class="car-preset">
