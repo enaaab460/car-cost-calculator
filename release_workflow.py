@@ -23,7 +23,7 @@ def log_success(msg):
 def log_error(msg):
     print(f"{RED}[ERROR] {msg}{RESET}")
 
-def run_command(command, check=True, input_text=None):
+def run_command(command, check=True, input_text=None, exit=True, env=None):
     """Runs a shell command and exits on failure if check is True."""
     try:
         subprocess.run(
@@ -31,11 +31,13 @@ def run_command(command, check=True, input_text=None):
             shell=True,
             check=check,
             input=input_text,
-            text=True if input_text else False
+            text=True if input_text else False,
+            env=env
         )
     except subprocess.CalledProcessError:
         log_error(f"Command failed: {command}")
-        sys.exit(1)
+        if exit:
+            sys.exit(1)
 
 def main():
     env_path = os.path.join(".git", ".env")
@@ -43,19 +45,32 @@ def main():
         log_info("Loading environment variables from .git/.env")
         load_dotenv(env_path, override=True)
 
-    log_info("Preparing firefox branch...")
-    run_command("git checkout firefox")
-    run_command("python publish.py", input_text="y")
-    run_command('git commit -am "Release"')
+    # log_info("Preparing firefox branch...")
+    # run_command("git checkout firefox")
+    # run_command("python publish.py", input_text="y")
+    # run_command('git commit -am "Release"',exit=False)
 
-    log_info("Uploading firefox build to Firefox Add-ons...")
-    run_command(f'web-ext sign --ignore-files build *.py --channel listed --api-key "{os.environ.get("WEB_EXT_API_KEY")}" --api-secret "{os.environ.get("WEB_EXT_API_SECRET")}" --id "{os.environ.get("EXTENSION_ID")}"')
+    # log_info("Uploading firefox build to Firefox Add-ons...")
+    # if os.path.exists("web-ext-artifacts"):
+    #     shutil.rmtree("web-ext-artifacts")
+    # if not os.path.exists("manifest.json"):
+    #     os.symlink(os.getcwd() + "/static/manifest.json","manifest.json")
+    # run_command('web-ext build -n source.zip --ignore-files build')
+    # run_command(f'web-ext sign --approval-timeout 0 -s build/firefox --upload-source-code web-ext-artifacts/source.zip --channel listed --api-key "{os.environ.get("WEB_EXT_API_KEY")}" --api-secret "{os.environ.get("WEB_EXT_API_SECRET")}"')
+    # shutil.rmtree("web-ext-artifacts")
 
     for branch in ["chrome", "online"]:
         log_info(f"Processing branch: {branch}")
 
         run_command(f"git checkout {branch}")
-        run_command("git merge firefox")
+        merge_error = str(subprocess.run("git merge firefox", shell=True,capture_output= True).stderr)
+        if merge_error.find("Automatic merge failed") != 0:
+            log_error(f"Merge failed for {branch}. Please resolve conflicts manually.")
+            print(f"{CYAN}Resolve conflicts, commit the changes, then press Enter to continue...{RESET}")
+            input()
+            
+        if merge_error.find("nothing to commit"):
+            continue
 
         log_info("Running publish.py...")
         run_command("python publish.py", input_text="y\n")
