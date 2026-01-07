@@ -16,7 +16,7 @@
             "yearSelector": "h1",
             "odometerSelector": ".mileage",
             "priceSelector": ".price",
-            "carSelector": ".main-content"
+            "carSelector": ".mai"
         },
         {
             "id": 1762710042063,
