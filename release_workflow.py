@@ -18,7 +18,7 @@ def log_info(msg):
     print(f"{CYAN}[INFO] {msg}{RESET}")
 
 def log_success(msg):
-    print(f"{GREEN}{msg}{RESET}")
+    print(f"{GREEN}[SUCCESS] {msg}{RESET}")
 
 def log_error(msg):
     print(f"{RED}[ERROR] {msg}{RESET}")
@@ -71,7 +71,7 @@ def main():
         if merge_error.find("Automatic merge failed") != -1:
             log_error(f"Merge failed for {branch}. Please resolve conflicts manually.")
             input()
-        if merge_error.find("nothing to commit"):
+        if merge_error.find("nothing to commit") != -1:
             continue
 
         log_info("Running publish.py...")
@@ -94,7 +94,8 @@ def main():
     else:
         print("[WARNING] No artifacts found to release.")
 
-    log_success("\n[SUCCESS] Workflow completed.")
+    # run_command("git checkout firefox")
+    log_success("\nWorkflow completed.")
 
 if __name__ == "__main__":
     main()
