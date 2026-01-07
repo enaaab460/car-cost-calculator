@@ -1,6 +1,6 @@
 node_modules
-src/routes/test
 .git.rar
+.manifest.json
 
 # Output
 .output
@@ -9,6 +9,7 @@ src/routes/test
 .wrangler
 /.svelte-kit
 /build
+web-ext-artifacts
 
 # OS
 .DS_Store

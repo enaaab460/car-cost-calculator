@@ -92,7 +92,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=>{
 
 async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = false) {
     if (!tab.url) return
-    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'alwaysVinCheck', 'vinProvider', 'blackList', 'zipcode'];
+    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'vinProvider', 'blackList'];
     var result = await chrome.storage.sync.get(keys)
     if (!result || !result.yearlyOdometer) {
         chrome.runtime.openOptionsPage();
@@ -106,8 +106,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
     let redFlags = result.redFlags as string;
     let currentyear = result.currentyear as number;
     let alwaysSort = result.alwaysSort as boolean;
-    let zipcode = result.zipcode as number;
-    // let alwaysVinCheck = result.alwaysVinCheck;
     let vinProvider = result.vinProvider as string;
     const blRes = await chrome.storage.local.get('blackList') as { blackList?: BlackList };
     let blackList: BlackList = blRes.blackList ?? {};
@@ -121,16 +119,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
         life = result.selectedCarLife as number;
     }
     let selectorConfigs = result.selectorConfigs as SelectorConfig[]
-    // if (!selectorConfigs){
-    //     chrome.notifications.create({
-    //         type: 'basic',
-    //         iconUrl: 'icons/icon-128x128.png',
-    //         title: 'No Website Presets',
-    //         message: 'Check settings'
-    //         // message: `Using ${mode} mode on data from calculator`
-    //     });
-    //     // return
-    // }
 
     let thisSelector = selectorConfigs.find((x: SelectorConfig) => tab.url?.includes(x.domain) && x.calculationMode == mode);
     if (!thisSelector && mode != "red-flags") {
@@ -196,10 +184,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             return;
                         }
                         const odometerElement = el.querySelector(thisSelector.odometerSelector) as HTMLElement;
-                        // if (!odometerElement) {
-                        //     console.error(`odometerElement ${thisSelector.odometerSelector} not found`);
-                        //     return;
-                        // }
                         priceElement.style.fontStyle = "";
                         var year = 0;
                         if (yearElement) {
@@ -304,7 +288,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
     if (mode != "multiple"){
         var foundRedFlags = await chrome.scripting.executeScript({
             target: { tabId: tab.id! },
-            func: async (mode: getCarDataModes, redFlags: string, thisSelector: any, vinProvider: string, name: string, odometer: number, zipcode: number)=>{
+            func: async (mode: getCarDataModes, redFlags: string, thisSelector: any, vinProvider: string, name: string, odometer: number)=>{
                 var retVal: any[] = []
                 let redFlagsArray = redFlags.replace(/[.*+?^${}()|[\]]/g, '\\$&').toLowerCase().split(/ ?, ?/)
                 var flags = new Set()
@@ -396,10 +380,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     kbb.style.display = "block"
                     kbb.textContent = "Check KBB"
                     kbb.id = "ext-checkKBB"
-                    kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}&zipcode=${zipcode}`
+                    kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`
                     kbb.target = "_blank"
                     myStats.append(kbb)
-                    // if (alwaysVinCheck) check.click()
                 }
                 for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                     // if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
@@ -413,7 +396,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 }
                 return retVal
             },
-            args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, name, res ? res.odometer : 0, zipcode]
+            args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, name, res ? res.odometer : 0]
             // args: [mode, redFlags, thisSelector]
         }) as any
         console.log(foundRedFlags)
