@@ -128,17 +128,20 @@
 
     async function checkUpdates(){
         try {
-            let downloaded = await (await fetch("https://raw.githubusercontent.com/enaaab460/car-cost-calculator/refs/heads/firefox/static/sample-settings.json")).json()
-            if (downloaded && downloaded.settings){
+            let downloaded: {selectorConfigs: SelectorConfig[]} = await (await fetch("https://raw.githubusercontent.com/enaaab460/car-cost-calculator/refs/heads/firefox/static/sample-settings.json")).json()
+            if (downloaded && downloaded.selectorConfigs){
                 console.log(downloaded)
-                if (JSON.stringify(downloaded.settings) == JSON.stringify($state.snapshot(selectorConfigs))){
+                if (JSON.stringify(downloaded.selectorConfigs) == JSON.stringify($state.snapshot(selectorConfigs))){
                     statusText = "Already using latest update"
                 } else {
-                    selectorConfigs = downloaded.settings
+                    let downIds = downloaded.selectorConfigs.map(x => x.id)
+                    var userAdded = selectorConfigs.filter(x => !downIds.includes(x.id))
+                    selectorConfigs = downloaded.selectorConfigs
+                    selectorConfigs.push(...userAdded)
                     statusText = "Updated website selectors, save to confirm changes."
                 }
             }
-        }catch{
+        } catch {
             statusText = "Failed to update Website selectors"
         }
     }
