@@ -63,12 +63,11 @@ def main():
         log_info(f"Processing branch: {branch}")
 
         run_command(f"git checkout {branch}")
-        merge_error = str(subprocess.run("git merge firefox", shell=True,capture_output= True).stderr)
-        if merge_error.find("Automatic merge failed") != 0:
+        merge_error = subprocess.run("git merge firefox", shell=True,capture_output= True).stdout.decode()
+        print(merge_error)
+        if merge_error.find("Automatic merge failed") != -1:
             log_error(f"Merge failed for {branch}. Please resolve conflicts manually.")
-            print(f"{CYAN}Resolve conflicts, commit the changes, then press Enter to continue...{RESET}")
             input()
-            
         if merge_error.find("nothing to commit"):
             continue
 
