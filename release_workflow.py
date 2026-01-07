@@ -3,9 +3,15 @@
 import os
 import sys
 import json
+<<<<<<< HEAD
 import subprocess
 import glob
 # from datetime import datetime
+=======
+import shutil
+import subprocess
+import glob
+>>>>>>> firefox
 from dotenv import load_dotenv
 
 # ANSI Colors for output
@@ -15,13 +21,13 @@ RED = "\033[91m"
 RESET = "\033[0m"
 
 def log_info(msg):
-    print(f"{CYAN}[INFO] {msg}{RESET}")
+    print(f"\n{CYAN}[INFO] {msg}{RESET}")
 
 def log_success(msg):
-    print(f"{GREEN}[SUCCESS] {msg}{RESET}")
+    print(f"\n{GREEN}[SUCCESS] {msg}{RESET}")
 
 def log_error(msg):
-    print(f"{RED}[ERROR] {msg}{RESET}")
+    print(f"\n{RED}[ERROR] {msg}{RESET}")
 
 def run_command(command, check=True, input_text=None, exit=True, env=None):
     """Runs a shell command and exits on failure if check is True."""
@@ -48,19 +54,19 @@ def main():
     with open("static/manifest.json") as f:
         version = json.load(f)["version"]
 
-    # log_info("Preparing firefox branch...")
-    # run_command("git checkout firefox")
-    # run_command("python publish.py", input_text="y")
-    # run_command('git commit -am "Release"',exit=False)
+    log_info("Preparing firefox branch...")
+    run_command("git checkout firefox")
+    run_command("python publish.py", input_text="y")
+    run_command('git commit -am "Release"',exit=False)
 
-    # log_info("Uploading firefox build to Firefox Add-ons...")
-    # if os.path.exists("web-ext-artifacts"):
-    #     shutil.rmtree("web-ext-artifacts")
-    # if not os.path.exists("manifest.json"):
-    #     os.symlink(os.getcwd() + "/static/manifest.json","manifest.json")
-    # run_command('web-ext build -n source.zip --ignore-files build')
-    # run_command(f'web-ext sign --approval-timeout 0 -s build/firefox --upload-source-code web-ext-artifacts/source.zip --channel listed --api-key "{os.environ.get("WEB_EXT_API_KEY")}" --api-secret "{os.environ.get("WEB_EXT_API_SECRET")}"')
-    # shutil.rmtree("web-ext-artifacts")
+    log_info("Uploading firefox build to Firefox Add-ons...")
+    if os.path.exists("web-ext-artifacts"):
+        shutil.rmtree("web-ext-artifacts")
+    if not os.path.exists("manifest.json"):
+        os.symlink(os.getcwd() + "/static/manifest.json","manifest.json")
+    run_command('web-ext build -n source.zip --ignore-files build')
+    run_command(f'web-ext sign --approval-timeout 0 -s build/firefox --upload-source-code web-ext-artifacts/source.zip --channel listed --api-key "{os.environ.get("WEB_EXT_API_KEY")}" --api-secret "{os.environ.get("WEB_EXT_API_SECRET")}"')
+    shutil.rmtree("web-ext-artifacts")
 
     for branch in ["chrome", "online"]:
         log_info(f"Processing branch: {branch}")
@@ -79,11 +85,10 @@ def main():
 
         if branch == "online":
             log_info("Deploying online branch to Cloudflare Pages...")
-            run_command(f'npx wrangler pages deploy build/online --branch=production --project-name "{os.environ.get("CLOUDFLARE_PROJECT")}"')
+            run_command(f'npx wrangler pages deploy build/online --branch=main --project-name "{os.environ.get("CLOUDFLARE_PROJECT")}"')
 
     # --- GitHub Release ---
     log_info(f"[INFO] Creating GitHub Release...")
-    # tag_name = datetime.now().strftime("v%Y.%m.%d-%H%M")
 
     # Resolve artifact paths
     artifact_files = glob.glob(os.path.join("build", "*.zip"))
@@ -94,7 +99,7 @@ def main():
     else:
         print("[WARNING] No artifacts found to release.")
 
-    # run_command("git checkout firefox")
+    run_command("git checkout firefox")
     log_success("\nWorkflow completed.")
 
 if __name__ == "__main__":
