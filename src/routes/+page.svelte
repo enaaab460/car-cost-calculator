@@ -52,7 +52,10 @@
         const result = await chrome.storage.sync.get(keys) as any
         if (!result) return
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
-        else openOptionsPage()
+        else {
+            alert("Settings not initialised, redirecting to options")
+            chrome.runtime.openOptionsPage();
+        }
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) typicalLife = result.typicalLife;
         if (result.carPresets) carPresets = result.carPresets;
@@ -347,10 +350,6 @@
         } as ChartConfiguration;
         regressionChart = new Chart(regressionCanvas, config)
         regressionCanvas.style.height = '30em'
-    }
-
-    function openOptionsPage() {
-        chrome.runtime.openOptionsPage();
     }
 
     function kbb(trim: boolean){
