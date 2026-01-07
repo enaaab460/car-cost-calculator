@@ -24,7 +24,7 @@
 
     onMount(async () => {
         // Load saved settings when the component mounts
-        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysSort','zipcode']) as any
+        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysSort']) as any
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) typicalLife = result.typicalLife;
@@ -126,6 +126,26 @@
         statusText = 'Settings and cars saved successfully.';
     }
 
+    async function checkUpdates(){
+        try {
+            let downloaded: {selectorConfigs: SelectorConfig[]} = await (await fetch("https://raw.githubusercontent.com/enaaab460/car-cost-calculator/refs/heads/firefox/static/sample-settings.json")).json()
+            if (downloaded && downloaded.selectorConfigs){
+                console.log(downloaded)
+                if (JSON.stringify(downloaded.selectorConfigs) == JSON.stringify($state.snapshot(selectorConfigs))){
+                    statusText = "Already using latest update"
+                } else {
+                    let downIds = downloaded.selectorConfigs.map(x => x.id)
+                    var userAdded = selectorConfigs.filter(x => !downIds.includes(x.id))
+                    selectorConfigs = downloaded.selectorConfigs
+                    selectorConfigs.push(...userAdded)
+                    statusText = "Updated website selectors, save to confirm changes."
+                }
+            }
+        } catch {
+            statusText = "Failed to update Website selectors"
+        }
+    }
+
     function restoredSettings(){
         const input = document.createElement('input');
         input.type = 'file';
@@ -215,6 +235,7 @@
     {/each}
 
     <button onclick={addSite}>Add New Site</button>
+    <button onclick={checkUpdates}>Check Updates</button>
 
     <hr />
 

@@ -3,15 +3,9 @@
 import os
 import sys
 import json
-<<<<<<< HEAD
-import subprocess
-import glob
-# from datetime import datetime
-=======
 import shutil
 import subprocess
 import glob
->>>>>>> firefox
 from dotenv import load_dotenv
 
 # ANSI Colors for output
@@ -54,20 +48,6 @@ def main():
     with open("static/manifest.json") as f:
         version = json.load(f)["version"]
 
-    log_info("Preparing firefox branch...")
-    run_command("git checkout firefox")
-    run_command("python publish.py", input_text="y")
-    run_command('git commit -am "Release"',exit=False)
-
-    log_info("Uploading firefox build to Firefox Add-ons...")
-    if os.path.exists("web-ext-artifacts"):
-        shutil.rmtree("web-ext-artifacts")
-    if not os.path.exists("manifest.json"):
-        os.symlink(os.getcwd() + "/static/manifest.json","manifest.json")
-    run_command('web-ext build -n source.zip --ignore-files build')
-    run_command(f'web-ext sign --approval-timeout 0 -s build/firefox --upload-source-code web-ext-artifacts/source.zip --channel listed --api-key "{os.environ.get("WEB_EXT_API_KEY")}" --api-secret "{os.environ.get("WEB_EXT_API_SECRET")}"')
-    shutil.rmtree("web-ext-artifacts")
-
     for branch in ["chrome", "online"]:
         log_info(f"Processing branch: {branch}")
 
@@ -88,7 +68,7 @@ def main():
             run_command(f'npx wrangler pages deploy build/online --branch=main --project-name "{os.environ.get("CLOUDFLARE_PROJECT")}"')
 
     # --- GitHub Release ---
-    log_info(f"[INFO] Creating GitHub Release...")
+    log_info(f"Creating GitHub Release...")
 
     # Resolve artifact paths
     artifact_files = glob.glob(os.path.join("build", "*.zip"))
