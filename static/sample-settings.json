@@ -18,7 +18,7 @@
             "yearSelector": "h1",
             "odometerSelector": ".mileage",
             "priceSelector": ".price",
-            "carSelector": ".main-content"
+            "carSelector": ".mai"
         },
         {
             "calculationMode": "multiple",
