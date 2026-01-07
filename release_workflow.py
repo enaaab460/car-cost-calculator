@@ -23,7 +23,7 @@ def log_success(msg):
 def log_error(msg):
     print(f"{RED}[ERROR] {msg}{RESET}")
 
-def run_command(command, check=True, input_text=None, exit=True):
+def run_command(command, check=True, input_text=None, exit=True, env=None):
     """Runs a shell command and exits on failure if check is True."""
     try:
         subprocess.run(
@@ -31,7 +31,8 @@ def run_command(command, check=True, input_text=None, exit=True):
             shell=True,
             check=check,
             input=input_text,
-            text=True if input_text else False
+            text=True if input_text else False,
+            env=env
         )
     except subprocess.CalledProcessError:
         log_error(f"Command failed: {command}")
@@ -62,7 +63,13 @@ def main():
         log_info(f"Processing branch: {branch}")
 
         run_command(f"git checkout {branch}")
-        run_command("git merge firefox")
+        merge_error = subprocess.run("git merge firefox", shell=True,capture_output= True).stdout.decode()
+        print(merge_error)
+        if merge_error.find("Automatic merge failed") != -1:
+            log_error(f"Merge failed for {branch}. Please resolve conflicts manually.")
+            input()
+        if merge_error.find("nothing to commit"):
+            continue
 
         log_info("Running publish.py...")
         run_command("python publish.py", input_text="y\n")
