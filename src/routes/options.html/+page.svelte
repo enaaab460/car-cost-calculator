@@ -75,10 +75,6 @@
                         let settings = result.settings
                         if (settings){
                             ({ yearlyOdometer, haggle, typicalLife, currentyear } = settings); 
-                            // yearlyOdometer = settings.yearlyOdometer;
-                            // haggle = settings.haggle;
-                            // typicalLife = settings.typicalLife;
-                            // currentyear = settings.currentyear;
                         }
                         let carPresets = result.carPresets
                         localStorage.setItem("carPresets", JSON.stringify(carPresets))
