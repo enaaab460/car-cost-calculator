@@ -4,7 +4,7 @@
         "haggle": 15,
         "typicalLife": 15,
         "currentyear": 2026,
-        "redFlags": "salvage,rebuil,r title,rental,accident,owners,reconstruct,salvaje,branded,Title issue,down,sold",
+        "redFlags": "salvage,rebuil,r title,rental,accident,owners,reconstruct,salvaje,branded,Title issue,Title Brand,down,sold,loss,damage",
         "vinProvider": "https://www.nicb.org/vincheck?vin=%s",
         "zipcode": 0,
         "alwaysVinCheck": false,
@@ -61,9 +61,9 @@
             "id": 1762613609293,
             "domain": "carmax.com",
             "calculationMode": "multiple",
-            "yearSelector": ".make-model-info.scct--make-model-info",
-            "odometerSelector": ".scct--price-miles-info--miles",
-            "priceSelector": ".scct--price-miles-info--price",
+            "yearSelector": "a.css-63o3ws",
+            "odometerSelector": ".css-1lzlly2.mileage-info",
+            "priceSelector": ".price-info",
             "carSelector": ".listing-container.car-container > div"
         },
         {
