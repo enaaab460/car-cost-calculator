@@ -2,10 +2,10 @@
 
 import os
 import sys
-import shutil
+import json
 import subprocess
 import glob
-from datetime import datetime
+# from datetime import datetime
 from dotenv import load_dotenv
 
 # ANSI Colors for output
@@ -44,6 +44,9 @@ def main():
     if os.path.exists(env_path):
         log_info("Loading environment variables from .git/.env")
         load_dotenv(env_path, override=True)
+        
+    with open("static/manifest.json") as f:
+        version = json.load(f)["version"]
 
     # log_info("Preparing firefox branch...")
     # run_command("git checkout firefox")
@@ -80,14 +83,14 @@ def main():
 
     # --- GitHub Release ---
     log_info(f"[INFO] Creating GitHub Release...")
-    tag_name = datetime.now().strftime("v%Y.%m.%d-%H%M")
+    # tag_name = datetime.now().strftime("v%Y.%m.%d-%H%M")
 
     # Resolve artifact paths
     artifact_files = glob.glob(os.path.join("build", "*.zip"))
 
     if artifact_files:
         files_str = " ".join(f'"{f}"' for f in artifact_files)
-        run_command(f'gh release create "{tag_name}" {files_str} --generate-notes')
+        run_command(f'gh release create "v{version}" {files_str} --generate-notes')
     else:
         print("[WARNING] No artifacts found to release.")
 
