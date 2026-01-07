@@ -1,6 +1,7 @@
 node_modules
 .git.rar
-.manifest.json
+manifest.json
+static/sample-settings.json
 
 # Output
 .output
