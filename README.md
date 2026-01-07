@@ -13,7 +13,9 @@ where the car is in very good or excellent condition, is very commonly available
 where life is assumed to be around 10 to 20 years, at ~~13.5k~~ 10k miles a year (can be changed in the settings, read Average yearly driven miles Tangent). Research should be done about the reliability of the brand, model, specific years, and the maintenance of the specific car. Sources at the end of the page might be a good starting point. Less reliable cars are closer to 10 years (~~135k~~ 100k miles) and more reliable are closer to 20 years (~~270k~~ 200k miles), assuming excellent condition and maintenance. Life is not simply the expected lifespan of the drivetrain. A running car can be also be totaled if it needs expensive repairs (relative to the remaining value of the car) or if parts are no longer available. Rust rots and condition of interior and exterior degrades with time regardless of miles. Even though there are exceptions, turbos, cvts, hybrid/battery systems, and head gaskets are common headaches to look out for when researching reliability.
 
 ## Quick notes 
-Extension made with miles and american websites in mind, but kilometers and other websites were retrofitted. It was also made with cars beyond the year 2000 but support for 2000 and earlier was retrofitted.
+Extension made with miles in mind, but kilometers were retrofitted. It was also made with cars beyond the year 2000 but support for 2000 and earlier was retrofitted.
+
+You can add car presets for name, price, and expected lifespan. If name matches kbb's or edmunds' naming, you can search them much quicker. The calculator and graphs do not need car presets or website presets, but they greatly improve the experience. 
 
 Suggested fair price is merely a mathematical approximation, with no consideration for market factors. 
 
