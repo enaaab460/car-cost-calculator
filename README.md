@@ -111,6 +111,8 @@ I have some experience in Svelte and JS, and have programmed for many years. But
 
 AI assisted in writing this extension, namely free Gemini 2.5 and chatgpt-5 in vscode. All code was revised and tested (to the best of my ability). Vibe-coding was attempted at multiple points, with varying degrees of success. It helped alot at figuring out the correct chrome apis and chartjs apis I needed, but was very frustrating at times and I had to roll back many prompts and write them myself. Aiding in bug fixes was more useful.
 
+Starting from v1.2.7, checking updates for website selectors was added. It is a button in the options page that checks the github repo for the latest static/sample-settings.json, which has the website selectors.
+
 I am not in the automotive industry, many statements made in this post were read or heard online, and should be taken with a grain of salt.
 
 # How to install:

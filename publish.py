@@ -3,9 +3,6 @@ import json
 import subprocess
 from pathlib import Path
 
-if input("Did you bump the version in the manifest?") != 'y':
-    exit()
-
 print("Running npm build...")
 subprocess.run("npm run build", shell=True, check=True)
 
