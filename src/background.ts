@@ -189,7 +189,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         priceElement.style.fontStyle = "";
                         var year = 0;
                         if (yearElement) {
-                            let parsedYear = yearElement.textContent.match(/[\d]{4}/)
+                            let parsedYear = yearElement.textContent.match(/\b[\d]{4}\b/)
                             if (parsedYear) year = parseInt(parsedYear[0]);
                             if (year < 1950 || year > currentyear + 1) {
                                 console.error(`Unsupported year ${year}`)
@@ -297,11 +297,14 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 const redFlagsRegex = new RegExp(redFlagsArray.filter(Boolean).join('|'), 'gi');
                 const baseExcludeSelectors = 'script, style, #ext-stats';
                 const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector}` : baseExcludeSelectors;
+                var redText: {text: string, flags: Set<string>}[] = []
                 document.querySelector("#ext-stats")?.remove()
                 // Walker GEMINI (modified)
                 function processNode(node: Node) {
-                    const text = node.textContent;
-                    if (!text || !text.trim()) return;
+                    var text = node.textContent;
+                    if (!text) return;
+                    text = text.trim()
+                    if (!text) return;
 
                     const matches = text.toLowerCase().match(redFlagsRegex);
                     if (!matches) return;
@@ -311,8 +314,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
 
                     if (parent.closest(excludeSelector)) return;
                     let parentFlags = new Set(parent.flags)
+                    var nFlags: Set<string> = new Set()
                     for (const match of matches) {
                         const flag = match.toLowerCase();
+                        nFlags.add(flag)
                         flags.add(flag);
                         parentFlags.add(flag);
                     }
@@ -323,6 +328,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     parent.style.setProperty("color", "red", "important");
                     parent.classList.add("ext-redFlags");
                     parent.title = Array.from(parentFlags).join(', ');
+                    redText.push({text,flags: nFlags})
                     console.log(parent, text, parentFlags)
                 }
                 console.time("redFlags");
@@ -356,6 +362,18 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         danger.id = "ext-danger"
                         danger.style = "color: red;"
                         let l = document.createElement("span")
+                        l.onclick = async () => {
+                            for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
+                                // if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
+                                let grandParent = e.parentElement as HTMLElement
+                                while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement!
+                                if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
+                                else grandParent.scrollIntoView({block: "center"})
+                                grandParent.style.setProperty("border","solid red 1px", "important")
+                                await new Promise(resolve => setTimeout(resolve, 1000))
+                                // if (e.getBoundingClientRect().height > 0) grandParent.style.border = ""
+                            }
+                        }
                         l.textContent = "Red Flags: "
                         l.oncontextmenu = (e) => {e.preventDefault(); danger.remove()}
                         danger.append(l)
@@ -368,7 +386,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         }
                         myStats.append(danger)
                     }
-                    alert(msg)
+                    alert(`${msg}\n~~~\n\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
                 }
                 let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b[\w\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
                 if (vins){
@@ -387,16 +405,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`
                     kbb.target = "_blank"
                     myStats.append(kbb)
-                }
-                for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
-                    // if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
-                    let grandParent = e.parentElement as HTMLElement
-                    while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement!
-                    if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
-                    else grandParent.scrollIntoView({block: "center"})
-                    grandParent.style.setProperty("border","solid red 1px", "important")
-                    await new Promise(resolve => setTimeout(resolve, 1000))
-                    // if (e.getBoundingClientRect().height > 0) grandParent.style.border = ""
                 }
                 return retVal
             },
