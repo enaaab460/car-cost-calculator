@@ -206,7 +206,7 @@
         <label><span>Default Yearly Odometer (thou)</span><input type="number" bind:value={yearlyOdometer}></label>
         <label><span>Default Haggle Down %</span><input type="number" bind:value={haggle}></label>
         <label><span>Default Expected Lifespan</span><input type="number" bind:value={typicalLife}></label>
-        <label><span style:margin="auto 0">Red Flags (comma-separated)</span><textarea bind:value={redFlags}></textarea></label>
+        <label><span style:margin="auto 0">Red Flags (REGex)</span><textarea bind:value={redFlags}></textarea></label>
         <label><span>VinCheck site (%s for VIN)</span><input bind:value={vinProvider}></label>
         <label><span>Always sort Multiple?</span><input type="checkbox" bind:checked={alwaysSort}></label>
         <button style="width: 10em;" onclick={() => (confirm("Are you sure you want to clear blackList?")) ? blackList = {} : ''}>Clear Blacklist</button>

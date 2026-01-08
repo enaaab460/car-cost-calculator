@@ -292,9 +292,8 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
             target: { tabId: tab.id! },
             func: async (mode: getCarDataModes, redFlags: string, thisSelector: any, vinProvider: string, name: string, odometer: number)=>{
                 var retVal: any[] = []
-                let redFlagsArray = redFlags.replace(/[.*+?^${}()|[\]]/g, '\\$&').toLowerCase().split(/ ?, ?/)
                 var flags = new Set()
-                const redFlagsRegex = new RegExp(redFlagsArray.filter(Boolean).join('|'), 'gi');
+                const redFlagsRegex = new RegExp(redFlags, 'gi');
                 const baseExcludeSelectors = 'script, style, #ext-stats';
                 const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector}` : baseExcludeSelectors;
                 var redText: {text: string, flags: Set<string>}[] = []
