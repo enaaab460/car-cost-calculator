@@ -4,10 +4,14 @@ type getCarDataModes = "single" | "multiple" | "red-flags"
 type BlackList = { [domain: string]: string[] };
 type ScrapedMultipleUnit = {name: string, link: string ,age: number, price: number, yearsAgo: number, odometer: number, res: number}
 
-interface flagParent extends HTMLElement{
+interface FlagParent extends HTMLElement{
     flags: Set<string>
     defColor: string
     defTitle: string
+}
+
+interface CarEl extends HTMLElement {
+    diffNum: number
 }
 
 chrome.runtime.getPlatformInfo().then(({os}) => {
@@ -166,7 +170,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     }
                     console.timeEnd("blacklist")
                 }
-                const carElements = Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[];
+                const carElements = Array.from(document.querySelectorAll(thisSelector.carSelector)) as CarEl[];
                 console.time("Price")
                 carElements.forEach(el => {
                     try {
@@ -241,7 +245,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             let thisCar: ScrapedMultipleUnit = {name: yearElement.textContent.trim(), link: el.querySelector("a")?.href! ,age: Math.round(old * 10) / 10, price: price, yearsAgo: currentyear - year, odometer: odometer, res}
                             retVal.push(thisCar)
                         }else retVal = { year, odometer, price }
-                        Object.defineProperty(el, "diffNum", { value: price - res})
+                        el.diffNum = price - res
                         priceElement.append(tempEl);
                     } catch (error) {
                         console.error(error);
@@ -302,7 +306,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const matches = text.toLowerCase().match(redFlagsRegex);
                     if (!matches) return;
 
-                    const parent = node.parentElement as flagParent | null;
+                    const parent = node.parentElement as FlagParent | null;
                     if (!parent) return;
 
                     if (parent.closest(excludeSelector)) return;
@@ -319,17 +323,19 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     parent.style.setProperty("color", "red", "important");
                     parent.classList.add("ext-redFlags");
                     parent.title = Array.from(parentFlags).join(', ');
-                    console.log(parent, parentFlags)
+                    console.log(parent, text, parentFlags)
                 }
                 console.time("redFlags");
-                const scope = document.querySelector(thisSelector.carSelector) || document.body;
-                const treeWalker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
-                while (treeWalker.nextNode()) {
-                    processNode(treeWalker.currentNode);
-                }
+                const scopes = document.querySelectorAll(thisSelector.carSelector) || [document.body];
+                scopes.forEach(scope => {
+                    const treeWalker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+                    while (treeWalker.nextNode()) {
+                        processNode(treeWalker.currentNode);
+                    }
+                })
                 console.timeEnd("redFlags");
                 document.addEventListener('contextmenu', function handleContextMenu(e) {
-                    const flaggedElement = (e.target! as HTMLElement).closest('.ext-redFlags') as flagParent | null;
+                    const flaggedElement = (e.target! as HTMLElement).closest('.ext-redFlags') as FlagParent | null;
                     if (flaggedElement) {
                         e.preventDefault();
                         flaggedElement.style.color = flaggedElement.defColor
@@ -364,9 +370,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     }
                     alert(msg)
                 }
-                let vin = document.querySelector(thisSelector.carSelector).innerText.match(/\b[\w\d]{17}\b/)
-                if (vin){
-                    vin = vin[0]
+                let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b[\w\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
+                if (vins){
+                    let vin = vins[0][0]
                     let check = document.createElement("a")
                     check.style.display = "block"
                     check.textContent = "Check Title"

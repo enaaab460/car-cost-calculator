@@ -63,6 +63,11 @@
             else if (dif == 0 && a.calculationMode == "single") return -1
             else return 1
         })
+        selectorConfigs.forEach(sc => {
+            if (Object.hasOwn(sc,"excludeSelector") && sc.excludeSelector == ''){
+                delete sc.excludeSelector
+            }
+        })
         var toSave = {
             yearlyOdometer,
             haggle,
