@@ -207,7 +207,8 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         const price = parseInt(priceMatch[1]);
                         var odometer = 0;
                         if (odometerElement) {
-                            var odText = odometerElement.innerText.toLowerCase().replaceAll(',', '');
+                            // innerText is empty in cars.com, so switching to textContent
+                            var odText = odometerElement.textContent.toLowerCase().replaceAll(',', '');
                             var odometerMatch = odText.match(/(\d+)(\.\d+)?k?( (mi|km))/);
                             if (!odometerMatch) odometerMatch = odText.match(/(\d+)(\.\d+)?k?/);
                             if (odometerMatch) {
@@ -300,6 +301,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 document.querySelector("#ext-stats")?.remove()
                 // Walker GEMINI (modified)
                 function processNode(node: Node) {
+                    if (!(node instanceof CharacterData)) return
                     var text = node.textContent;
                     if (!text) return;
                     text = text.trim()
@@ -308,10 +310,15 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const matches = text.toLowerCase().match(redFlagsRegex);
                     if (!matches) return;
 
-                    const parent = node.parentElement as FlagParent | null;
-                    if (!parent) return;
+                    let newEl = document.createElement("span") as FlagParent
+                    newEl.innerText = node.textContent
+                    node.replaceWith(newEl)
+                    const parent = newEl
+                    // const parent = node.parentElement as FlagParent | null;
+                    // if (!parent) return;
 
                     if (parent.closest(excludeSelector)) return;
+                    if (parent.parentElement!.tagName.includes("SCRIPT")) return;
                     let parentFlags = new Set(parent.flags)
                     var nFlags: Set<string> = new Set()
                     for (const match of matches) {
