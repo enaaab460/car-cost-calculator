@@ -94,7 +94,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=>{
 
 async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = false) {
     if (!tab.url) return
-    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'vinProvider', 'blackList'];
+    const keys = ['yearlyOdometer', 'haggle', 'life', 'selectorConfigs', 'selectedCarName', 'selectedCarCost', 'selectedCarLife', 'currentyear', 'redFlags', 'alwaysSort', 'vinProvider', 'recallProvider', 'blackList'];
     var result = await chrome.storage.sync.get(keys)
     if (!result || !result.yearlyOdometer) {
         chrome.runtime.openOptionsPage();
@@ -109,6 +109,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
     let currentyear = result.currentyear as number;
     let alwaysSort = result.alwaysSort as boolean;
     let vinProvider = result.vinProvider as string;
+    let recallProvider = result.recallProvider as string;
     const blRes = await chrome.storage.local.get('blackList') as { blackList?: BlackList };
     let blackList: BlackList = blRes.blackList ?? {};
     let tabURL = new URL(tab.url)
@@ -291,7 +292,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
     if (mode != "multiple"){
         var foundRedFlags = await chrome.scripting.executeScript({
             target: { tabId: tab.id! },
-            func: async (mode: getCarDataModes, redFlags: string, thisSelector: any, vinProvider: string, name: string, odometer: number)=>{
+            func: async (mode: getCarDataModes, redFlags: string, thisSelector: any, vinProvider: string, recallProvider: string, name: string, odometer: number)=>{
                 var retVal: any[] = []
                 var flags = new Set()
                 const redFlagsRegex = new RegExp(redFlags, 'gi');
@@ -311,7 +312,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     if (!matches) return;
 
                     let newEl = document.createElement("span") as FlagParent
-                    newEl.innerText = node.textContent
+                    newEl.textContent = node.textContent
                     node.replaceWith(newEl)
                     const parent = newEl
                     // const parent = node.parentElement as FlagParent | null;
@@ -367,7 +368,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         let danger = document.createElement("div")
                         danger.id = "ext-danger"
                         danger.style = "color: red;"
-                        let l = document.createElement("span")
+                        let l = document.createElement("a")
                         l.onclick = async () => {
                             for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                                 // if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
@@ -395,26 +396,24 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     alert(`${msg}\n~~~\n\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
                 }
                 let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b[\w\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
-                if (vins){
+                if (vins && vinProvider && recallProvider){
                     let vin = vins[0][0]
-                    let check = document.createElement("a")
-                    check.style.display = "block"
-                    check.textContent = "Check Title"
-                    check.id = "ext-checkTitle"
-                    check.href = vinProvider.replace("%s",vin)
-                    check.target = "_blank"
-                    myStats.append(check)
-                    let kbb = document.createElement("a")
-                    kbb.style.display = "block"
-                    kbb.textContent = "Check KBB"
-                    kbb.id = "ext-checkKBB"
-                    kbb.href = `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`
-                    kbb.target = "_blank"
-                    myStats.append(kbb)
+                    for (let x of [
+                        {n: "Title", v: vinProvider.replace("%s",vin)},
+                        {n: "KBB", v: `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`},
+                        {n: "Recall", v: recallProvider.replace("%s", vin)}
+                    ]){
+                        let check = document.createElement("a")
+                        check.style.display = "block"
+                        check.textContent = "Check " + x.n
+                        check.href = x.v
+                        check.target = "_blank"
+                        myStats.append(check)
+                    }
                 }
                 return retVal
             },
-            args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, name, res ? res.odometer : 0]
+            args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, recallProvider, name, res ? res.odometer : 0]
             // args: [mode, redFlags, thisSelector]
         }) as any
         console.log(foundRedFlags)
