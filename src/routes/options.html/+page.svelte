@@ -21,10 +21,11 @@
 
     let alwaysSort = $state(false)
     let vinProvider = $state("")
+    let recallProvider = $state("")
 
     onMount(async () => {
         // Load saved settings when the component mounts
-        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'alwaysSort']) as any
+        let result = await chrome.storage.sync.get(['yearlyOdometer', 'haggle', 'typicalLife', 'selectorConfigs','currentyear', 'redFlags', 'vinProvider', 'recallProvider', 'alwaysSort']) as any
         if (result.yearlyOdometer) yearlyOdometer = result.yearlyOdometer;
         if (result.haggle) haggle = result.haggle;
         if (result.typicalLife) typicalLife = result.typicalLife;
@@ -35,6 +36,7 @@
             selectorConfigs = sampleSettings.selectorConfigs;
             redFlags = sampleSettings.settings.redFlags
             vinProvider = sampleSettings.settings.vinProvider
+            recallProvider = sampleSettings.settings.recallProvider
             yearlyOdometer = sampleSettings.settings.yearlyOdometer
             haggle = sampleSettings.settings.haggle
             typicalLife = sampleSettings.settings.typicalLife
@@ -43,6 +45,7 @@
         if (result.currentyear) currentyear = result.currentyear
         if (result.redFlags) redFlags = result.redFlags
         if (result.vinProvider) vinProvider = result.vinProvider
+        if (result.recallProvider) recallProvider = result.recallProvider
         if (result.alwaysSort) alwaysSort = result.alwaysSort
         result = await chrome.storage.local.get('blackList')
         if (result.blackList) blackList = result.blackList
@@ -63,6 +66,11 @@
             else if (dif == 0 && a.calculationMode == "single") return -1
             else return 1
         })
+        selectorConfigs.forEach(sc => {
+            if (Object.hasOwn(sc,"excludeSelector") && sc.excludeSelector == ''){
+                delete sc.excludeSelector
+            }
+        })
         var toSave = {
             yearlyOdometer,
             haggle,
@@ -70,6 +78,7 @@
             currentyear,
             redFlags,
             vinProvider,
+            recallProvider,
             alwaysSort,
             selectorConfigs
         }
@@ -106,6 +115,7 @@
             currentyear,
             redFlags,
             vinProvider,
+            recallProvider,
             alwaysSort
         }
         var all: any = {
@@ -166,6 +176,7 @@
                             currentyear = settings.currentyear;
                             redFlags = settings.redFlags;
                             vinProvider = settings.vinProvider;
+                            recallProvider = settings.recallProvider;
                             alwaysSort = settings.alwaysSort;
                         }
                         let selectorConfigs = result.selectorConfigs
@@ -201,8 +212,9 @@
         <label><span>Default Yearly Odometer (thou)</span><input type="number" bind:value={yearlyOdometer}></label>
         <label><span>Default Haggle Down %</span><input type="number" bind:value={haggle}></label>
         <label><span>Default Expected Lifespan</span><input type="number" bind:value={typicalLife}></label>
-        <label><span style:margin="auto 0">Red Flags (comma-separated)</span><textarea bind:value={redFlags}></textarea></label>
+        <label><span style:margin="auto 0">Red Flags (REGex)</span><textarea bind:value={redFlags}></textarea></label>
         <label><span>VinCheck site (%s for VIN)</span><input bind:value={vinProvider}></label>
+        <label><span>RecallCheck site (%s for VIN)</span><input bind:value={recallProvider}></label>
         <label><span>Always sort Multiple?</span><input type="checkbox" bind:checked={alwaysSort}></label>
         <button style="width: 10em;" onclick={() => (confirm("Are you sure you want to clear blackList?")) ? blackList = {} : ''}>Clear Blacklist</button>
         <button style="width: 10em;" onclick={() => {chrome.storage.local.remove('scrapedMultiple'); chrome.storage.sync.remove("scrapedSingle")}}>Clear Scraped</button>

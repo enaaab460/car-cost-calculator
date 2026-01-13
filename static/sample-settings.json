@@ -4,8 +4,9 @@
         "haggle": 15,
         "typicalLife": 15,
         "currentyear": 2026,
-        "redFlags": "salva,rebuil,r title,rental,accident,owners,reconstruct,branded,Title issue,Title Brand,down,sold,loss,damage,buy here pay here,fee,issue,t work,problem,bad,rust,broke,stuck,need,pop,noise,aftermarket,code,sound",
+        "redFlags": "salva[gj]e|rebuil|\\br title|rental|\\blease|accident|owners\\b|reconstruct|branded|Title issue|Title Brand|down|sold|loss|damage|buy here pay here|fee\\b|issue|t work|problem|bad|rust|broke|stuck|need|noise|aftermarket|code|sound|recall|pop(s|ping)",
         "vinProvider": "https://www.nicb.org/vincheck?vin=%s",
+        "recallProvider": "https://www.nhtsa.gov/recalls?vymm=%s",
         "alwaysSort": true
     },
     "selectorConfigs": [
@@ -86,10 +87,11 @@
             "id": 1762246723552,
             "domain": "cars.com/vehicledetail",
             "calculationMode": "single",
-            "yearSelector": ".listing-title",
-            "odometerSelector": ".listing-mileage",
-            "priceSelector": ".primary-price",
-            "carSelector": ".basics-content-wrapper,.listing-overview"
+            "yearSelector": "#vehicle-title",
+            "odometerSelector": ".msrp",
+            "priceSelector": ".list-price",
+            "carSelector": ".primary-grid",
+            "excludeSelector": ".sidebar,#dealers-info"
         },
         {
             "calculationMode": "single",
@@ -148,13 +150,12 @@
         },
         {
             "calculationMode": "single",
-            "carSelector": "[role=\"dialog\"]",
+            "carSelector": ".space-y-1.px-4.text-foreground,.caption-bottom",
             "domain": "visor.vin/search/listings/",
             "id": 1761472511456,
-            "odometerSelector": ".dark\\:text-accent-foreground\\/80.text-\\[\\#797979\\].text-right",
-            "priceSelector": ".text-3xl.font-semibold",
-            "yearSelector": ".md\\:space-y-2\\.5.text-foreground.px-4.space-y-1 > .gap-x-2.items-center.flex-row.flex > .text-xl.font-semibold",
-            "excludeSelector": ".px-4.space-y-6.mb-4 > .dark\\:text-foreground"
+            "odometerSelector": "div.md\\:flex",
+            "priceSelector": "div.md\\:flex",
+            "yearSelector": "h2.text-xl"
         },
         {
             "calculationMode": "multiple",
