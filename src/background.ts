@@ -318,6 +318,18 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     if (node.parentElement!.closest(excludeSelector)) return;
                     if (node.parentElement!.tagName.includes("SCRIPT")) return;
 
+                    for (let j of [{l:"\n",e:"p"},{l:".",e:"span"}]){
+                        if (text.includes(j.l)){
+                            let newNodes = text.split(j.l).map(x=>{
+                                let s = document.createElement(j.e)
+                                s.innerText = x
+                                return s
+                            })
+                            node.replaceWith(...newNodes)
+                            walker.currentNode = newNodes[0]
+                            return true
+                        }
+                    }
                     let newEl = document.createElement("span") as FlagParent
                     newEl.textContent = node.textContent
                     walker.nextNode()
