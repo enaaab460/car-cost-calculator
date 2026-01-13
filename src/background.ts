@@ -209,12 +209,16 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         var odometer = 0;
                         if (odometerElement) {
                             // innerText is empty in cars.com, so switching to textContent
-                            var odText = odometerElement.textContent.toLowerCase().replaceAll(',', '');
-                            var odometerMatch = odText.match(/(\d+)(\.\d+)?k?( (mi|km))/);
-                            if (!odometerMatch) odometerMatch = odText.match(/(\d+)(\.\d+)?k?/);
-                            if (odometerMatch) {
-                                odometer = parseInt(odometerMatch[1]);
-                                if (odText.search(/k(?!m)/) != -1) odometer = odometer * 1000;
+                            // textContent messes newlines so craigslist doesn't work
+                            var odText = odometerElement.innerText?.trim().toLowerCase().replaceAll(',', '');
+                            if (!odText) odText = odometerElement.textContent?.toLowerCase().replaceAll(',', '');
+                            if (odText){
+                                var odometerMatch = odText.match(/(\d+)(\.\d+)?k?( (mi|km))/);
+                                if (!odometerMatch) odometerMatch = odText.match(/(\d+)(\.\d+)?k?/);
+                                if (odometerMatch) {
+                                    odometer = parseInt(odometerMatch[1]);
+                                    if (odText.search(/k(?!m)/) != -1) odometer = odometer * 1000;
+                                }
                             }
                         }
                         var old = 0
@@ -301,8 +305,8 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 var redText: {text: string, flags: Set<string>}[] = []
                 document.querySelector("#ext-stats")?.remove()
                 // Walker GEMINI (modified)
-                function processNode(node: Node) {
-                    if (!(node instanceof CharacterData)) return
+                function processNode(n: Node, walker: TreeWalker) {
+                    let node = n as CharacterData
                     var text = node.textContent;
                     if (!text) return;
                     text = text.trim()
@@ -311,15 +315,14 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const matches = text.toLowerCase().match(redFlagsRegex);
                     if (!matches) return;
 
+                    if (node.parentElement!.closest(excludeSelector)) return;
+                    if (node.parentElement!.tagName.includes("SCRIPT")) return;
+
                     let newEl = document.createElement("span") as FlagParent
                     newEl.textContent = node.textContent
+                    walker.nextNode()
                     node.replaceWith(newEl)
                     const parent = newEl
-                    // const parent = node.parentElement as FlagParent | null;
-                    // if (!parent) return;
-
-                    if (parent.closest(excludeSelector)) return;
-                    if (parent.parentElement!.tagName.includes("SCRIPT")) return;
                     let parentFlags = new Set(parent.flags)
                     var nFlags: Set<string> = new Set()
                     for (const match of matches) {
@@ -337,22 +340,26 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     parent.title = Array.from(parentFlags).join(', ');
                     redText.push({text,flags: nFlags})
                     console.log(parent, text, parentFlags)
+                    return true
                 }
                 console.time("redFlags");
                 const scopes = document.querySelectorAll(thisSelector.carSelector) || [document.body];
                 scopes.forEach(scope => {
                     const treeWalker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
-                    while (treeWalker.nextNode()) {
-                        processNode(treeWalker.currentNode);
+                    var here = treeWalker.nextNode()
+                    while (here) {
+                        if (!processNode(here, treeWalker)) here = treeWalker.nextNode()
+                        else here = treeWalker.currentNode
                     }
                 })
                 console.timeEnd("redFlags");
                 document.addEventListener('contextmenu', function handleContextMenu(e) {
-                    const flaggedElement = (e.target! as HTMLElement).closest('.ext-redFlags') as FlagParent | null;
+                    const flaggedElement = (e.target! as FlagParent).closest('.ext-redFlags') as FlagParent | null;
                     if (flaggedElement) {
                         e.preventDefault();
-                        flaggedElement.style.color = flaggedElement.defColor
-                        flaggedElement.title = flaggedElement.title
+                        // TODO: Fix
+                        flaggedElement.title = flaggedElement.defTitle ?? ""
+                        flaggedElement.style.color = flaggedElement.defColor ?? ""
                         flaggedElement.classList.remove("ext-redFlags");
                     }
                 });
