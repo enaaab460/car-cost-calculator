@@ -315,8 +315,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const matches = text.toLowerCase().match(redFlagsRegex);
                     if (!matches) return;
 
-                    if (node.parentElement!.closest(excludeSelector)) return;
-                    if (node.parentElement!.tagName.includes("SCRIPT")) return;
+                    let parent = node.parentElement as FlagParent
+                    if (!parent) return
+                    if (parent.closest(excludeSelector)) return;
+                    if (parent.tagName.includes("SCRIPT")) return;
 
                     for (let j of [{l:"\n",e:"p"},{l:".",e:"span"}]){
                         if (text.includes(j.l)){
@@ -330,11 +332,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             return true
                         }
                     }
-                    let newEl = document.createElement("span") as FlagParent
-                    newEl.textContent = node.textContent
-                    walker.nextNode()
-                    node.replaceWith(newEl)
-                    const parent = newEl
                     let parentFlags = new Set(parent.flags)
                     var nFlags: Set<string> = new Set()
                     for (const match of matches) {
@@ -352,7 +349,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     parent.title = Array.from(parentFlags).join(', ');
                     redText.push({text,flags: nFlags})
                     console.log(parent, text, parentFlags)
-                    return true
                 }
                 console.time("redFlags");
                 const scopes = document.querySelectorAll(thisSelector.carSelector) || [document.body];
@@ -361,7 +357,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     var here = treeWalker.nextNode()
                     while (here) {
                         if (!processNode(here, treeWalker)) here = treeWalker.nextNode()
-                        else here = treeWalker.currentNode
                     }
                 })
                 console.timeEnd("redFlags");
