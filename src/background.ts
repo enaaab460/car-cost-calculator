@@ -24,6 +24,12 @@ chrome.runtime.getPlatformInfo().then(({os}) => {
             });
 
             chrome.contextMenus.create({
+                id: "get-red-flags",
+                title: "Red Flags",
+                contexts: ["page"],
+            });
+
+            chrome.contextMenus.create({
                 id: "get-car-data-multiple",
                 title: "Multiple Cars",
                 contexts: ["page"],
@@ -66,6 +72,7 @@ chrome.runtime.getPlatformInfo().then(({os}) => {
 
         chrome.commands.onCommand.addListener((command, tab) => {
             if (!tab || !command) return
+            console.log(command)
             if (command === "get-car-data-single") {
                 getCarData('single', tab);
             } else if (command === "get-car-data-multiple") {
@@ -320,17 +327,29 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     if (parent.closest(excludeSelector)) return;
                     if (parent.tagName.includes("SCRIPT")) return;
 
-                    for (let j of [{l:"\n",e:"p"},{l:".",e:"span"}]){
-                        if (text.includes(j.l)){
-                            let newNodes = text.split(j.l).map(x=>{
-                                let s = document.createElement(j.e)
-                                s.innerText = x
-                                return s
-                            })
-                            node.replaceWith(...newNodes)
-                            walker.currentNode = newNodes[0]
-                            return true
-                        }
+                    for (let j of [{l:"\n",e:"p"},{l:/\.\s/,e:"span"}]){
+                        let splitter = j.l
+                        let search = text.search(splitter)
+                        if (search == -1 || search == text.length-1) continue
+                        let match = text.match(splitter)
+                        if (!match) continue
+                        let splitText = text.split(splitter)
+                        let newNodes = splitText.map((x,i)=>{
+                            let s = document.createElement(j.e)
+                            if (i < splitText.length - 1) x += match[0]
+                            s.innerText = x
+                            return s
+                        })
+                        node.replaceWith(...newNodes)
+                        walker.currentNode = newNodes[0]
+                        return true
+                    }
+                    if (parent.childNodes.length > 1){
+                        let s = document.createElement("span")
+                        s.innerText = text
+                        node.replaceWith(s)
+                        walker.currentNode = s
+                        return true
                     }
                     let parentFlags = new Set(parent.flags)
                     var nFlags: Set<string> = new Set()
@@ -385,14 +404,14 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         let l = document.createElement("a")
                         l.onclick = async () => {
                             for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
-                                // if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
-                                let grandParent = e.parentElement as HTMLElement
-                                while (grandParent.getBoundingClientRect().height < 1) grandParent = grandParent.parentElement!
+                                if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
+                                let parent = e as HTMLElement
+                                while (parent.getBoundingClientRect().height < 1) parent = parent.parentElement!
                                 if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
-                                else grandParent.scrollIntoView({block: "center"})
-                                grandParent.style.setProperty("border","solid red 1px", "important")
+                                else parent.scrollIntoView({block: "center"})
+                                parent.style.setProperty("border","solid red 1px", "important")
                                 await new Promise(resolve => setTimeout(resolve, 1000))
-                                // if (e.getBoundingClientRect().height > 0) grandParent.style.border = ""
+                                if (parent != e) parent.style.border = ""
                             }
                         }
                         l.textContent = "Red Flags: "
@@ -407,9 +426,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         }
                         myStats.append(danger)
                     }
-                    alert(`${msg}\n~~~\n\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
+                    alert(`${msg}\n~~~\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
                 }
-                let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b[\w\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
+                let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b(?=\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
                 if (vins && vinProvider && recallProvider){
                     let vin = vins[0][0]
                     for (let x of [
