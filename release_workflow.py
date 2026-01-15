@@ -55,8 +55,9 @@ def main():
     log_info("Uploading firefox build to Firefox Add-ons...")
     if os.path.exists("web-ext-artifacts"):
         shutil.rmtree("web-ext-artifacts")
-    if not os.path.exists("manifest.json"):
-        os.symlink(os.getcwd() + "/static/manifest.json","manifest.json")
+    if os.path.exists("manifest.json"):
+        os.remove("manifest.json")
+    os.symlink(os.getcwd() + "/static/manifest.json","manifest.json")
     run_command('web-ext build -n source.zip --ignore-files build')
     run_command(f'web-ext sign --approval-timeout 0 -s build/firefox --upload-source-code web-ext-artifacts/source.zip --channel listed --api-key "{os.environ.get("WEB_EXT_API_KEY")}" --api-secret "{os.environ.get("WEB_EXT_API_SECRET")}"')
     # shutil.rmtree("web-ext-artifacts")
