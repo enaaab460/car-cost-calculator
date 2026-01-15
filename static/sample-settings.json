@@ -4,7 +4,7 @@
         "haggle": 15,
         "typicalLife": 15,
         "currentyear": 2026,
-        "redFlags": "salva[gj]e|rebuil|\\br title|rental|\\blease|accident|owners\\b|reconstruct|branded|Title issue|Title Brand|down|sold|loss|damage|buy here pay here|fee\\b|issue|t work|problem|bad|rust|broke|stuck|need|noise|aftermarket|code|sound|recall|pop(s|ping)",
+        "redFlags": "salva[gj]e|rebuil|\\br title|rental|\\blease|accident|owners\\b|reconstruct|branded|Title issue|Title Brand|down|sold|loss|damage|buy here pay here|fee\\b|issue|n[o']t work|problem|bad|rust|broke|stuck|need|noise|aftermarket|code|sound|recall|pop(s|ping)|leak|check engine|break|broke|torn|tear|scratch",
         "vinProvider": "https://www.nicb.org/vincheck?vin=%s",
         "recallProvider": "https://www.nhtsa.gov/recalls?vymm=%s",
         "alwaysSort": true
@@ -87,11 +87,10 @@
             "id": 1762246723552,
             "domain": "cars.com/vehicledetail",
             "calculationMode": "single",
-            "yearSelector": "#vehicle-title",
-            "odometerSelector": ".msrp",
-            "priceSelector": ".list-price",
-            "carSelector": ".primary-grid",
-            "excludeSelector": ".sidebar,#dealers-info"
+            "yearSelector": ".listing-title",
+            "odometerSelector": ".listing-mileage",
+            "priceSelector": ".primary-price",
+            "carSelector": ".basics-content-wrapper,.listing-overview"
         },
         {
             "calculationMode": "single",
@@ -150,12 +149,13 @@
         },
         {
             "calculationMode": "single",
-            "carSelector": ".space-y-1.px-4.text-foreground,.caption-bottom",
+            "carSelector": "[role=\"dialog\"]",
             "domain": "visor.vin/search/listings/",
             "id": 1761472511456,
-            "odometerSelector": "div.md\\:flex",
-            "priceSelector": "div.md\\:flex",
-            "yearSelector": "h2.text-xl"
+            "odometerSelector": ".dark\\:text-accent-foreground\\/80.text-\\[\\#797979\\].text-right",
+            "priceSelector": ".text-3xl.font-semibold",
+            "yearSelector": ".md\\:space-y-2\\.5.text-foreground.px-4.space-y-1 > .gap-x-2.items-center.flex-row.flex > .text-xl.font-semibold",
+            "excludeSelector": ".px-4.space-y-6.mb-4 > .dark\\:text-foreground"
         },
         {
             "calculationMode": "multiple",
@@ -168,7 +168,7 @@
         },
         {
             "calculationMode": "single",
-            "carSelector": ".xtxwg39.xiylbte.x10wlt62.x6ikm8r.x1lytzrv.xdt5ytf.x78zum5.x1jx94hy",
+            "carSelector": "body > div:not([style=\"display:none\"]) .x1stjdt1.xzepove.xh8yej3.x1n2onr6.x5yr21d.xnp8db0.x78zum5.xc5fred.x1t7ytsu.x12u81az",
             "domain": "www.facebook.com/marketplace/item/",
             "id": 1761470621101,
             "odometerSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:nth-of-type(1) > .xeuugli.xs83m0k.x1iyjqo2.x1r8uery.xamitd3.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-div > .xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",

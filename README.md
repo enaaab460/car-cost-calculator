@@ -61,7 +61,7 @@ Hovering over the price in either mode will show a brief summary of the car disc
 ## Single Mode (Alt-Q)
 Allows plotting where the car stands relative to the depreciation curve, and price styles. If the css selectors of the website are registered, it will automatically parse it for the year, miles and price. It can be still be used standalone without registering the website. If the name of the car is the same as KBB, then using the KBB button will allow quick access to kbb price estimator. If the trim is also the same, the right clicking will provide 1-click shortcut. Edmunds support is also available but is mainly useful for specs, recalls, and suggested OTD price. Not affiliated with either. When choosing trims, I would recommend either picking the least trim that has all the features you need, or the most popular one. 
 
-The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the service chosen in the settings. 
+The mode can read the listing's page for red flags, and color them red and scroll them into view. If it detects a 17 character string of letters and numbers, it will assume it is the VIN and provide shortcut to check it using the services chosen in the settings for title and recall (v1.2.8+). 
 
 If the website is not registered, it will be replaced by a `Red Flags` button that only checks for red flags.
 
@@ -83,7 +83,7 @@ With version 1.1, a second regression curve is added to give an overview of the 
 
 * Market line is above fair line.
 
-If the curve is less steep than fair curve, then the market judged the car's lifespan to be longer than what you set (in years or miles or yearlymiles). If cars were had above MSRP (covid or otherwise), the curve would be shifted upward. That said, the listings visible are those that have not sold yet, which are more likely to be the worse value, skewing the average up.
+If the curve is less steep than fair curve, then the market judged the car's lifespan to be longer than what you set (in years or miles or yearlymiles). If cars were had above MSRP (covid or otherwise), the curve would be shifted upward. That said, the listings visible are those that have not sold yet, which are more likely to be the worse value, skewing the average up. Many listings will also have cars that need major repairs, which are more likely to be cheaper, skewing the average down.
 
 ## Out-the-door price tangent
 MSRP + non-negotiable fees (gorvernmental or dealer, like taxes or destination fees) - incentives.
