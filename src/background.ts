@@ -370,7 +370,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     console.log(parent, text, parentFlags)
                 }
                 console.time("redFlags");
-                const scopes = document.querySelectorAll(thisSelector.carSelector) || [document.body];
+                const scopes = document.querySelectorAll(thisSelector.carSelector);
                 scopes.forEach(scope => {
                     const treeWalker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
                     var here = treeWalker.nextNode()
@@ -391,9 +391,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 });
                 let myStats = document.createElement("div")
                 myStats.id = "ext-stats"
-                myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
+                myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white; pointer-events: auto;"
                 // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
-                document.querySelector("body")!.append(myStats)
+                document.body.prepend(myStats)
                 //GEMINI
                 function isActuallyVisible(el: HTMLElement) {
                     const rect = el.getBoundingClientRect();
@@ -417,13 +417,14 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             for (let e of document.querySelectorAll<HTMLElement>('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                                 if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
                                 let parent = e
-                                while (parent.parentElement && !isActuallyVisible(parent)) parent = parent.parentElement!
+                                // while (parent.parentElement && !isActuallyVisible(parent)) parent = parent.parentElement!
+                                while (!isActuallyVisible(parent)) parent = parent.parentElement!
                                 if (foundParents.has(parent)) continue
                                 else foundParents.add(parent)
                                 if (isActuallyVisible(e)) e.scrollIntoView({block: "center"})
                                 else parent.scrollIntoView({block: "center"})
                                 parent.style.setProperty("border","solid red 1px", "important")
-                                await new Promise(resolve => setTimeout(resolve, 1000))
+                                await new Promise(resolve => setTimeout(resolve, 500))
                                 if (parent == e) parent.style.border = ""
                             }
                         }
