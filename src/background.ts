@@ -394,15 +394,15 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white; pointer-events: auto;"
                 // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
                 document.body.prepend(myStats)
-                //GEMINI
+                //GEMINI failed
                 function isActuallyVisible(el: HTMLElement) {
                     const rect = el.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
+                    // const centerX = rect.left + rect.width / 2;
+                    // const centerY = rect.top + rect.height / 2;
                     
-                    // Check if the element at the foot rest's center is the foot rest itself
-                    const elementAtPoint = document.elementFromPoint(centerX, centerY);
-                    return el.contains(elementAtPoint);
+                    // const elementAtPoint = document.elementFromPoint(centerX, centerY);
+                    // return el.contains(elementAtPoint);
+                    return rect.height > 0
                 }
                 if (flags.size > 0){
                     retVal = Array.from(flags)
@@ -417,14 +417,21 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             for (let e of document.querySelectorAll<HTMLElement>('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                                 if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
                                 let parent = e
-                                // while (parent.parentElement && !isActuallyVisible(parent)) parent = parent.parentElement!
                                 while (!isActuallyVisible(parent)) parent = parent.parentElement!
+                                let t1 = e
+                                while (t1 != document.body){
+                                    if (window.getComputedStyle(t1).maxHeight == "0px"){
+                                        parent = t1
+                                        break
+                                    }
+                                    t1 = t1.parentElement!
+                                }
                                 if (foundParents.has(parent)) continue
                                 else foundParents.add(parent)
                                 if (isActuallyVisible(e)) e.scrollIntoView({block: "center"})
                                 else parent.scrollIntoView({block: "center"})
                                 parent.style.setProperty("border","solid red 1px", "important")
-                                await new Promise(resolve => setTimeout(resolve, 500))
+                                await new Promise(resolve => setTimeout(resolve, 800))
                                 if (parent == e) parent.style.border = ""
                             }
                         }
