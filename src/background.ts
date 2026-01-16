@@ -428,8 +428,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     }
                     alert(`${msg}\n~~~\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
                 }
-                let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b(?=\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
-                if (vins && vinProvider && recallProvider){
+                let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.textContent.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
+                if (vins.length == 0) vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
+                if (vins.length > 0 && vinProvider && recallProvider){
                     let vin = vins[0][0]
                     for (let x of [
                         {n: "Title", v: vinProvider.replace("%s",vin)},
