@@ -61,7 +61,7 @@ def main():
     run_command('web-ext build -n source.zip --ignore-files build')
     run_command(f'web-ext sign --approval-timeout 0 -s build/firefox --upload-source-code web-ext-artifacts/source.zip --channel listed --api-key "{os.environ.get("WEB_EXT_API_KEY")}" --api-secret "{os.environ.get("WEB_EXT_API_SECRET")}"')
     # shutil.rmtree("web-ext-artifacts")
-    run_command('git commit -am "Release"',exit=False)
+    run_command(f'git commit -am "Release v{version}"',exit=False)
 
     for branch in ["chrome", "online"]:
         log_info(f"Processing branch: {branch}")

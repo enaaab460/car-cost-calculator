@@ -327,7 +327,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     if (parent.closest(excludeSelector)) return;
                     if (parent.tagName.includes("SCRIPT")) return;
 
-                    for (let j of [{l:"\n",e:"p"},{l:/\.\s/,e:"span"}]){
+                    for (let j of [{l:"\n",e:"p"},{l:/[.,]\s/,e:"span"}]){
                         let splitter = j.l
                         let search = text.search(splitter)
                         if (search == -1 || search == text.length-1) continue
@@ -394,6 +394,16 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
                 // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
                 document.querySelector("body")!.append(myStats)
+                //GEMINI
+                function isActuallyVisible(el: HTMLElement) {
+                    const rect = el.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    // Check if the element at the foot rest's center is the foot rest itself
+                    const elementAtPoint = document.elementFromPoint(centerX, centerY);
+                    return el.contains(elementAtPoint);
+                }
                 if (flags.size > 0){
                     retVal = Array.from(flags)
                     let msg = `Red Flags: ${retVal}`
@@ -403,15 +413,18 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         danger.style = "color: red;"
                         let l = document.createElement("a")
                         l.onclick = async () => {
-                            for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
+                            let foundParents = new Set<HTMLElement>()
+                            for (let e of document.querySelectorAll<HTMLElement>('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                                 if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
-                                let parent = e as HTMLElement
-                                while (parent.getBoundingClientRect().height < 1) parent = parent.parentElement!
-                                if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
+                                let parent = e
+                                while (parent.parentElement && !isActuallyVisible(parent)) parent = parent.parentElement!
+                                if (foundParents.has(parent)) continue
+                                else foundParents.add(parent)
+                                if (isActuallyVisible(e)) e.scrollIntoView({block: "center"})
                                 else parent.scrollIntoView({block: "center"})
                                 parent.style.setProperty("border","solid red 1px", "important")
                                 await new Promise(resolve => setTimeout(resolve, 1000))
-                                if (parent != e) parent.style.border = ""
+                                if (parent == e) parent.style.border = ""
                             }
                         }
                         l.textContent = "Red Flags: "
@@ -445,6 +458,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         myStats.append(check)
                     }
                 }
+                let spacer = document.createElement("div")
+                spacer.id = "ext-spacer"
+                spacer.style.height = `${myStats.getBoundingClientRect().height}px`
+                document.body.prepend(spacer)
                 return retVal
             },
             args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, recallProvider, name, res ? res.odometer : 0]
