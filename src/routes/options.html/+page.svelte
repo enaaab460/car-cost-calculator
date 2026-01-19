@@ -79,11 +79,8 @@
                         let carPresets = result.carPresets
                         localStorage.setItem("carPresets", JSON.stringify(carPresets))
                         localStorage.setItem("settings", JSON.stringify(settings))
-                        saveSettings()
                         // console.log(settings)
                         // console.log(carPresets)
-                        // console.log(selectorConfigs)
-                        // console.log(blackList)
                         statusText = 'Settings and cars restored successfully.';
                         console.log(statusText)
                     } catch (error) {
