@@ -4,7 +4,7 @@
         "haggle": 15,
         "typicalLife": 15,
         "currentyear": 2026,
-        "redFlags": "salva[gj]e|rebuil|\\br title|rental|\\blease|accident|owners\\b|reconstruct|branded|Title issue|Title Brand|down|sold|loss|damage|buy here pay here|fee\\b|issue|n[o']t work|problem|bad|rust|broke|stuck|need|noise|aftermarket|code|sound|recall|pop(s|ping)|leak|check engine|break|broke|torn|tear|scratch",
+        "redFlags": "salva[gj]e|rebuil|\\br title|rental|\\blease|accident|owners\\b|reconstruct|branded|Title issue|Title Brand|down(?!load)|sold|loss|damage|buy here pay here|fees?\\b|issue|n[o']t work|problem|bad\\b|\\brust|broke|stuck|need|noise|aftermarket|code|sound|recall|pop(s|ping)|leak|check engine|emission|break|broke|torn|tear|scratch|crack|fix|(for|as) parts|\\bdent|airbag",
         "vinProvider": "https://www.nicb.org/vincheck?vin=%s",
         "recallProvider": "https://www.nhtsa.gov/recalls?vymm=%s",
         "alwaysSort": true
@@ -18,6 +18,15 @@
             "odometerSelector": ".mileage",
             "priceSelector": ".price",
             "carSelector": ".main-content"
+        },
+        {
+            "id": 1768331698754,
+            "domain": "autotempest.com/results",
+            "calculationMode": "multiple",
+            "yearSelector": "h2",
+            "odometerSelector": ".mileage",
+            "priceSelector": ".price-history",
+            "carSelector": "#list-results > .results-list > .results-target > ul > li.result-list-item"
         },
         {
             "id": 1762710042063,
@@ -99,7 +108,8 @@
             "id": 1761471391654,
             "odometerSelector": ".auto_miles.attr > .valu",
             "priceSelector": ".price",
-            "yearSelector": "#titletextonly"
+            "yearSelector": "#titletextonly",
+            "excludeSelector": ".print-qrcode-container"
         },
         {
             "calculationMode": "multiple",
@@ -120,12 +130,31 @@
             "carSelector": "li.col-md-6.col-12.mb-md-1_5.mb-0_75.d-flex"
         },
         {
+            "calculationMode": "multiple",
+            "carSelector": "[id^=\"mount_0_0_\"]:not([style=\"display:none\"]) .x165d6jo.x4vbgl9.x1lxpwgx.x1rdy4ex.x1nhvcw1.x1a02dak.x1q0g3np.x78zum5.x8gbvx8 > div",
+            "domain": "facebook.com/marketplace/",
+            "id": 1761282278614,
+            "odometerSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
+            "priceSelector": ".xzsf02u.x1s688f.x1lbecb7.x1jchvi3.x676frb.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
+            "yearSelector": ".xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1n2onr6.x10wlt62.x6ikm8r.x1lliihq"
+        },
+        {
+            "calculationMode": "single",
+            "carSelector": "body > div:not([style=\"display:none\"]) .x1stjdt1.xzepove.xh8yej3.x1n2onr6.x5yr21d.xnp8db0.x78zum5.xc5fred.x1t7ytsu.x12u81az",
+            "domain": "facebook.com/marketplace/item/",
+            "id": 1761470621101,
+            "odometerSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:nth-of-type(1) > .xeuugli.xs83m0k.x1iyjqo2.x1r8uery.xamitd3.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-div > .xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
+            "priceSelector": ".xf7dkkf.x18d9i69.xv54qhq.xyamay9 > .x1xmf6yo > div",
+            "yearSelector": ".xeuugli.x193iq5w.x1a2a7pz.x1pd3egz.x1qlqyl8.x1heor9g.x1vvkbs.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-h1",
+            "excludeSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:last-of-type,[class=\"x78zum5 xdt5ytf x1iyjqo2 x1n2onr6\"] > div:last-of-type"
+        },
+        {
             "id": 1762704708550,
             "domain": "truecar.com",
             "calculationMode": "single",
             "yearSelector": ".mb-4.z-10.leading-\\[1\\.2\\].grow.md\\:normal-case.heading-md-2.normal-case.heading-3_5",
             "odometerSelector": ".text-muted.items-center.flex.shrink-0",
-            "priceSelector": ".mt-16.w-full.self-stretch.gap-x-24.flex-col.flex > div.w-full.justify-between.items-start.flex-row.flex > .gap-x-8.items-center.flex > .text-20",
+            "priceSelector": "[data-test=\"pricingInfo\"]",
             "carSelector": "#mainContent",
             "excludeSelector": "#recommendationCarousel"
         },
@@ -152,28 +181,10 @@
             "carSelector": "[role=\"dialog\"]",
             "domain": "visor.vin/search/listings/",
             "id": 1761472511456,
-            "odometerSelector": ".dark\\:text-accent-foreground\\/80.text-\\[\\#797979\\].text-right",
-            "priceSelector": ".text-3xl.font-semibold",
-            "yearSelector": ".md\\:space-y-2\\.5.text-foreground.px-4.space-y-1 > .gap-x-2.items-center.flex-row.flex > .text-xl.font-semibold",
-            "excludeSelector": ".px-4.space-y-6.mb-4 > .dark\\:text-foreground"
-        },
-        {
-            "calculationMode": "multiple",
-            "carSelector": "[id^=\"mount_0_0_\"]:not([style=\"display:none\"]) .x165d6jo.x4vbgl9.x1lxpwgx.x1rdy4ex.x1nhvcw1.x1a02dak.x1q0g3np.x78zum5.x8gbvx8 > div",
-            "domain": "www.facebook.com/marketplace/",
-            "id": 1761282278614,
-            "odometerSelector": "div.xkh6y0r.x1gslohp > .x1c1uobl.xjkvuk6.xyri2b.x1iorvi4 > .xi81zsa.xo1l8bm.x1sibtaa.x1pg5gke.x3x7a5m.x4zkp8e.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1j85h84.xuxw1ft.xlyipyv.x1n2onr6.x10wlt62.x6ikm8r.x1lliihq",
-            "priceSelector": ".xzsf02u.x1s688f.x1lbecb7.x1jchvi3.x676frb.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
-            "yearSelector": ".xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w > .x1n2onr6.x10wlt62.x6ikm8r.x1lliihq"
-        },
-        {
-            "calculationMode": "single",
-            "carSelector": "body > div:not([style=\"display:none\"]) .x1stjdt1.xzepove.xh8yej3.x1n2onr6.x5yr21d.xnp8db0.x78zum5.xc5fred.x1t7ytsu.x12u81az",
-            "domain": "www.facebook.com/marketplace/item/",
-            "id": 1761470621101,
-            "odometerSelector": "div.xmzvs34.xwib8y2.xf159sx.x1y1aw1k.x13fj5qh.xat24cr.x1xegmmw.xdj266r.x78zum5.html-div:nth-of-type(1) > .xeuugli.xs83m0k.x1iyjqo2.x1r8uery.xamitd3.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-div > .xzsf02u.xo1l8bm.xvq8zen.x1f6kntn.x3x7a5m.xudqn12.x1943h6x.x1fgarty.x1cpjm7i.x1gmr53x.xhkezso.x1s928wv.x1lliihq.x1xmvt09.x1vvkbs.x13faqbe.xeuugli.x193iq5w",
-            "priceSelector": ".xf7dkkf.x18d9i69.xv54qhq.xyamay9 > .x1xmf6yo > div",
-            "yearSelector": ".xeuugli.x193iq5w.x1a2a7pz.x1pd3egz.x1qlqyl8.x1heor9g.x1vvkbs.x1c1uobl.x18d9i69.xyri2b.xexx8yu.x1lziwak.xat24cr.x14z9mp.xdj266r.html-h1"
+            "odometerSelector": "div.md\\:flex:nth-child(2) > div:nth-child(3)",
+            "priceSelector": "div.md\\:flex:nth-child(2) > div:nth-child(3)",
+            "yearSelector": "h2.text-xl",
+            "excludeSelector": "div.dark\\:text-foreground:nth-child(1), div.pt-6:has(.gap-6), .space-y-6.pb-4.text-foreground"
         }
     ]
 }
