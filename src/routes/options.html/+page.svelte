@@ -179,14 +179,15 @@
                             recallProvider = settings.recallProvider;
                             alwaysSort = settings.alwaysSort;
                         }
-                        let selectorConfigs = result.selectorConfigs
-                        let carPresets = result.carPresets
+                        selectorConfigs = result.selectorConfigs
                         blackList = result.blackList
+                        let carPresets = result.carPresets
                         await chrome.storage.sync.set($state.snapshot({...settings, selectorConfigs, carPresets}));
                         await chrome.storage.local.set($state.snapshot({blackList}));
-                        saveSettings()
                         // console.log(settings)
-                        // console.log(cars)
+                        // console.log(carPresets)
+                        // console.log(selectorConfigs)
+                        // console.log(blackList)
                         statusText = 'Settings and cars restored successfully.';
                         console.log(statusText)
                     } catch (error) {
