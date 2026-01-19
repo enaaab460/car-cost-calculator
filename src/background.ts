@@ -14,73 +14,74 @@ interface CarEl extends HTMLElement {
     diffNum: number
 }
 
-chrome.runtime.getPlatformInfo().then(({os}) => {
-    if (os != "android"){
-        chrome.runtime.onInstalled.addListener(() => {
-            chrome.contextMenus.create({
-                id: "get-car-data-single",
-                title: "Single Car",
-                contexts: ["page"],
-            });
+// chrome.runtime.getPlatformInfo().then(({os}) => {
+//     if (os != "android"){
+//     }
+// })
 
-            chrome.contextMenus.create({
-                id: "get-red-flags",
-                title: "Red Flags",
-                contexts: ["page"],
-            });
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: "get-car-data-single",
+        title: "Single Car",
+        contexts: ["page"],
+    });
 
-            chrome.contextMenus.create({
-                id: "get-car-data-multiple",
-                title: "Multiple Cars",
-                contexts: ["page"],
-            });
+    chrome.contextMenus.create({
+        id: "get-red-flags",
+        title: "Red Flags",
+        contexts: ["page"],
+    });
 
-            chrome.contextMenus.create({
-                id: "sort-cars",
-                title: "Sort Cars",
-                contexts: ["page"],
-            });
+    chrome.contextMenus.create({
+        id: "get-car-data-multiple",
+        title: "Multiple Cars",
+        contexts: ["page"],
+    });
 
-            chrome.contextMenus.create({
-                id: "clear-black-list",
-                title: "Clear this Black list ",
-                contexts: ["page"],
-            });
+    chrome.contextMenus.create({
+        id: "sort-cars",
+        title: "Sort Cars",
+        contexts: ["page"],
+    });
 
-            chrome.contextMenus.create({
-                id: "black-list-listing",
-                title: "Black list listing",
-                contexts: ["link"],
-            });
-        });
-        chrome.contextMenus.onClicked.addListener((info, tab) => {
-            if (!tab) return
-            if (info.menuItemId === "get-car-data-single") {
-                getCarData('single', tab);
-            } else if (info.menuItemId === "get-red-flags") {
-                getCarData('red-flags', tab);
-            } else if (info.menuItemId === "get-car-data-multiple") {
-                getCarData('multiple', tab);
-            } else if (info.menuItemId === "sort-cars") {
-                sortCars(tab)
-            } else if (info.menuItemId === "clear-black-list") {
-                clearBlackList(tab)
-            } else if (info.menuItemId === "black-list-listing" && info.linkUrl){
-                blackListLink(info.linkUrl, tab)
-            }
-        });
+    chrome.contextMenus.create({
+        id: "clear-black-list",
+        title: "Clear this Black list ",
+        contexts: ["page"],
+    });
 
-        chrome.commands.onCommand.addListener((command, tab) => {
-            if (!tab || !command) return
-            console.log(command)
-            if (command === "get-car-data-single") {
-                getCarData('single', tab);
-            } else if (command === "get-car-data-multiple") {
-                getCarData('multiple', tab);
-            } 
-        });
+    chrome.contextMenus.create({
+        id: "black-list-listing",
+        title: "Black list listing",
+        contexts: ["link"],
+    });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (!tab) return
+    if (info.menuItemId === "get-car-data-single") {
+        getCarData('single', tab);
+    } else if (info.menuItemId === "get-red-flags") {
+        getCarData('red-flags', tab);
+    } else if (info.menuItemId === "get-car-data-multiple") {
+        getCarData('multiple', tab);
+    } else if (info.menuItemId === "sort-cars") {
+        sortCars(tab)
+    } else if (info.menuItemId === "clear-black-list") {
+        clearBlackList(tab)
+    } else if (info.menuItemId === "black-list-listing" && info.linkUrl){
+        blackListLink(info.linkUrl, tab)
     }
-})
+});
+
+chrome.commands.onCommand.addListener((command, tab) => {
+    if (!tab || !command) return
+    if (command === "get-car-data-single") {
+        getCarData('single', tab);
+    } else if (command === "get-car-data-multiple") {
+        getCarData('multiple', tab);
+    } 
+});
 
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=>{
@@ -383,7 +384,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const flaggedElement = (e.target! as FlagParent).closest('.ext-redFlags') as FlagParent | null;
                     if (flaggedElement) {
                         e.preventDefault();
-                        // TODO: Fix
                         flaggedElement.title = flaggedElement.defTitle ?? ""
                         flaggedElement.style.color = flaggedElement.defColor ?? ""
                         flaggedElement.classList.remove("ext-redFlags");
@@ -394,15 +394,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white; pointer-events: auto;"
                 // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
                 document.body.prepend(myStats)
-                //GEMINI failed
                 function isActuallyVisible(el: HTMLElement) {
                     const rect = el.getBoundingClientRect();
-                    // const centerX = rect.left + rect.width / 2;
-                    // const centerY = rect.top + rect.height / 2;
-                    
-                    // const elementAtPoint = document.elementFromPoint(centerX, centerY);
-                    // return el.contains(elementAtPoint);
-                    return rect.height > 0
+                    return rect.height > 0 && window.getComputedStyle(el).visibility == "visible"
                 }
                 if (flags.size > 0){
                     retVal = Array.from(flags)
@@ -417,7 +411,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             for (let e of document.querySelectorAll<HTMLElement>('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                                 if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
                                 let parent = e
-                                while (!isActuallyVisible(parent)) parent = parent.parentElement!
+                                while (!isActuallyVisible(parent)) {
+                                    parent = parent.parentElement!
+                                    parent.style.setProperty("border","solid red 1px", "important")
+                                }
                                 let t1 = e
                                 while (t1 != document.body){
                                     if (window.getComputedStyle(t1).maxHeight == "0px"){
