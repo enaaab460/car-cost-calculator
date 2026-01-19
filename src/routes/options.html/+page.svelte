@@ -81,7 +81,9 @@
                         localStorage.setItem("settings", JSON.stringify(settings))
                         saveSettings()
                         // console.log(settings)
-                        // console.log(cars)
+                        // console.log(carPresets)
+                        // console.log(selectorConfigs)
+                        // console.log(blackList)
                         statusText = 'Settings and cars restored successfully.';
                         console.log(statusText)
                     } catch (error) {
