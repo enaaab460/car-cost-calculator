@@ -316,7 +316,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     if (parent.closest(excludeSelector)) return;
                     if (parent.tagName.includes("SCRIPT")) return;
 
-                    for (let j of [{l:"\n",e:"p"},{l:/\.\s/,e:"span"}]){
+                    for (let j of [{l:"\n",e:"p"},{l:/[.,]\s/,e:"span"}]){
                         let splitter = j.l
                         let search = text.search(splitter)
                         if (search == -1 || search == text.length-1) continue
@@ -359,7 +359,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     console.log(parent, text, parentFlags)
                 }
                 console.time("redFlags");
-                const scopes = document.querySelectorAll(thisSelector.carSelector) || [document.body];
+                const scopes = document.querySelectorAll(thisSelector.carSelector);
                 scopes.forEach(scope => {
                     const treeWalker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
                     var here = treeWalker.nextNode()
@@ -380,9 +380,19 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 });
                 let myStats = document.createElement("div")
                 myStats.id = "ext-stats"
-                myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white;"
+                myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white; pointer-events: auto;"
                 // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
-                document.querySelector("body")!.append(myStats)
+                document.body.prepend(myStats)
+                //GEMINI failed
+                function isActuallyVisible(el: HTMLElement) {
+                    const rect = el.getBoundingClientRect();
+                    // const centerX = rect.left + rect.width / 2;
+                    // const centerY = rect.top + rect.height / 2;
+                    
+                    // const elementAtPoint = document.elementFromPoint(centerX, centerY);
+                    // return el.contains(elementAtPoint);
+                    return rect.height > 0
+                }
                 if (flags.size > 0){
                     retVal = Array.from(flags)
                     let msg = `Red Flags: ${retVal}`
@@ -392,15 +402,26 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         danger.style = "color: red;"
                         let l = document.createElement("a")
                         l.onclick = async () => {
-                            for (let e of document.querySelectorAll('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
+                            let foundParents = new Set<HTMLElement>()
+                            for (let e of document.querySelectorAll<HTMLElement>('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                                 if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
-                                let parent = e as HTMLElement
-                                while (parent.getBoundingClientRect().height < 1) parent = parent.parentElement!
-                                if (e.getBoundingClientRect().height > 0) e.scrollIntoView({block: "center"})
+                                let parent = e
+                                while (!isActuallyVisible(parent)) parent = parent.parentElement!
+                                let t1 = e
+                                while (t1 != document.body){
+                                    if (window.getComputedStyle(t1).maxHeight == "0px"){
+                                        parent = t1
+                                        break
+                                    }
+                                    t1 = t1.parentElement!
+                                }
+                                if (foundParents.has(parent)) continue
+                                else foundParents.add(parent)
+                                if (isActuallyVisible(e)) e.scrollIntoView({block: "center"})
                                 else parent.scrollIntoView({block: "center"})
                                 parent.style.setProperty("border","solid red 1px", "important")
-                                await new Promise(resolve => setTimeout(resolve, 1000))
-                                if (parent != e) parent.style.border = ""
+                                await new Promise(resolve => setTimeout(resolve, 800))
+                                if (parent == e) parent.style.border = ""
                             }
                         }
                         l.textContent = "Red Flags: "
@@ -417,8 +438,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     }
                     alert(`${msg}\n~~~\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
                 }
-                let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b(?=\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
-                if (vins && vinProvider && recallProvider){
+                let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.textContent.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
+                if (vins.length == 0) vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
+                if (vins.length > 0 && vinProvider && recallProvider){
                     let vin = vins[0][0]
                     for (let x of [
                         {n: "Title", v: vinProvider.replace("%s",vin)},
@@ -433,6 +455,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         myStats.append(check)
                     }
                 }
+                let spacer = document.createElement("div")
+                spacer.id = "ext-spacer"
+                spacer.style.height = `${myStats.getBoundingClientRect().height}px`
+                document.body.prepend(spacer)
                 return retVal
             },
             args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, recallProvider, name, res ? res.odometer : 0]
