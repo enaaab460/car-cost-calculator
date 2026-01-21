@@ -312,6 +312,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector}` : baseExcludeSelectors;
                 var redText: {text: string, flags: Set<string>}[] = []
                 document.querySelector("#ext-stats")?.remove()
+                document.querySelector("#ext-spacer")?.remove()
                 // Walker GEMINI (modified)
                 function processNode(n: Node, walker: TreeWalker) {
                     let node = n as CharacterData
@@ -446,6 +447,18 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     }
                     alert(`${msg}\n~~~\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
                 }
+                function addToMyStats(x:any){
+                    let check = document.createElement("a")
+                    check.style.display = "block"
+                    check.textContent = "Check " + x.n
+                    check.href = x.v
+                    check.target = "_blank"
+                    myStats.append(check)
+                }
+                let dealerVinCheck = document.querySelector('a[href*="carfax"],a[href*="autocheck"]')
+                if (dealerVinCheck instanceof HTMLAnchorElement){
+                    addToMyStats({n:"Dealer VinCheck", v: dealerVinCheck.href})
+                }
                 let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.textContent.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
                 if (vins.length == 0) vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
                 if (vins.length > 0 && vinProvider && recallProvider){
@@ -455,12 +468,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         {n: "KBB", v: `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`},
                         {n: "Recall", v: recallProvider.replace("%s", vin)}
                     ]){
-                        let check = document.createElement("a")
-                        check.style.display = "block"
-                        check.textContent = "Check " + x.n
-                        check.href = x.v
-                        check.target = "_blank"
-                        myStats.append(check)
+                        addToMyStats(x)
                     }
                 }
                 let spacer = document.createElement("div")
