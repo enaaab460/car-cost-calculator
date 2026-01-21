@@ -300,6 +300,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector}` : baseExcludeSelectors;
                 var redText: {text: string, flags: Set<string>}[] = []
                 document.querySelector("#ext-stats")?.remove()
+                document.querySelector("#ext-spacer")?.remove()
                 // Walker GEMINI (modified)
                 function processNode(n: Node, walker: TreeWalker) {
                     let node = n as CharacterData
@@ -372,7 +373,6 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     const flaggedElement = (e.target! as FlagParent).closest('.ext-redFlags') as FlagParent | null;
                     if (flaggedElement) {
                         e.preventDefault();
-                        // TODO: Fix
                         flaggedElement.title = flaggedElement.defTitle ?? ""
                         flaggedElement.style.color = flaggedElement.defColor ?? ""
                         flaggedElement.classList.remove("ext-redFlags");
@@ -383,15 +383,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white; pointer-events: auto;"
                 // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
                 document.body.prepend(myStats)
-                //GEMINI failed
                 function isActuallyVisible(el: HTMLElement) {
                     const rect = el.getBoundingClientRect();
-                    // const centerX = rect.left + rect.width / 2;
-                    // const centerY = rect.top + rect.height / 2;
-                    
-                    // const elementAtPoint = document.elementFromPoint(centerX, centerY);
-                    // return el.contains(elementAtPoint);
-                    return rect.height > 0
+                    return rect.height > 0 && window.getComputedStyle(el).visibility == "visible"
                 }
                 if (flags.size > 0){
                     retVal = Array.from(flags)
@@ -406,7 +400,10 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                             for (let e of document.querySelectorAll<HTMLElement>('.ext-redFlags,a[href*="carfax"],a[href*="autocheck"]')){
                                 if (e instanceof HTMLAnchorElement && e.href.includes("download")) continue
                                 let parent = e
-                                while (!isActuallyVisible(parent)) parent = parent.parentElement!
+                                while (!isActuallyVisible(parent)) {
+                                    parent = parent.parentElement!
+                                    parent.style.setProperty("border","solid red 1px", "important")
+                                }
                                 let t1 = e
                                 while (t1 != document.body){
                                     if (window.getComputedStyle(t1).maxHeight == "0px"){
@@ -438,6 +435,18 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     }
                     alert(`${msg}\n~~~\n${redText.map(x=> `${x.text} [${String(Array.from(x.flags))}]`).join("\n___\n")}`)
                 }
+                function addToMyStats(x:any){
+                    let check = document.createElement("a")
+                    check.style.display = "block"
+                    check.textContent = "Check " + x.n
+                    check.href = x.v
+                    check.target = "_blank"
+                    myStats.append(check)
+                }
+                let dealerVinCheck = document.querySelector('a[href*="carfax"],a[href*="autocheck"]')
+                if (dealerVinCheck instanceof HTMLAnchorElement){
+                    addToMyStats({n:"Dealer VinCheck", v: dealerVinCheck.href})
+                }
                 let vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.textContent.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
                 if (vins.length == 0) vins = (Array.from(document.querySelectorAll(thisSelector.carSelector)) as HTMLElement[])?.map(n => n.innerText.match(/\b(?=\w*\d)[A-Z\d]{17}\b/)).filter(Boolean) as RegExpMatchArray[]
                 if (vins.length > 0 && vinProvider && recallProvider){
@@ -447,12 +456,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                         {n: "KBB", v: `https://www.kbb.com/mazda/cx-5/2023/vin/?intent=trade-in-sell&vin=${vin}&mileage=${odometer}`},
                         {n: "Recall", v: recallProvider.replace("%s", vin)}
                     ]){
-                        let check = document.createElement("a")
-                        check.style.display = "block"
-                        check.textContent = "Check " + x.n
-                        check.href = x.v
-                        check.target = "_blank"
-                        myStats.append(check)
+                        addToMyStats(x)
                     }
                 }
                 let spacer = document.createElement("div")

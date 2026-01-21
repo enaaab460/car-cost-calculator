@@ -96,10 +96,10 @@
             "id": 1762246723552,
             "domain": "cars.com/vehicledetail",
             "calculationMode": "single",
-            "yearSelector": ".listing-title",
-            "odometerSelector": ".listing-mileage",
-            "priceSelector": ".primary-price",
-            "carSelector": ".basics-content-wrapper,.listing-overview"
+            "yearSelector": ".listing-title,#vehicle-title",
+            "odometerSelector": ".listing-mileage,.msrp",
+            "priceSelector": ".primary-price,.price-container",
+            "carSelector": "body"
         },
         {
             "calculationMode": "single",
