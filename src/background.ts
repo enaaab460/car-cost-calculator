@@ -391,9 +391,9 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 });
                 let myStats = document.createElement("div")
                 myStats.id = "ext-stats"
-                myStats.style = "position: fixed; right: 0px; top: 0px; z-index: 99999;font-size: 2em; background: white; pointer-events: auto;"
+                myStats.style = "position: fixed; right: 0px; bottom: 0px; z-index: 99999;font-size: 2em; background: white; pointer-events: auto; padding: 0.25em;"
                 // myStats.oncontextmenu = (e) => {e.preventDefault(); myStats.remove()}
-                document.body.prepend(myStats)
+                document.body.append(myStats)
                 function isActuallyVisible(el: HTMLElement) {
                     const rect = el.getBoundingClientRect();
                     return rect.height > 0 && window.getComputedStyle(el).visibility == "visible"
@@ -473,7 +473,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 let spacer = document.createElement("div")
                 spacer.id = "ext-spacer"
                 spacer.style.height = `${myStats.getBoundingClientRect().height}px`
-                document.body.prepend(spacer)
+                document.body.append(spacer)
                 return retVal
             },
             args: [mode, redFlags, thisSelector ? thisSelector : {carSelector:"body"}, vinProvider, recallProvider, name, res ? res.odometer : 0]
