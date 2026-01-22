@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
   "name": "Car Cost Calculator",
-  "version": "1.2.11",
+  "version": "1.2.12",
   "description": "Calculates the effective cost of a used car and can read data from the current page.",
   "permissions": [
     "storage",
@@ -43,6 +43,12 @@
   },
   "browser_specific_settings": {
     "gecko": {
+      "id": "car-cost-calculator@enaaab460",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "gecko_android":{
       "id": "car-cost-calculator@enaaab460",
       "data_collection_permissions": {
         "required": ["none"]

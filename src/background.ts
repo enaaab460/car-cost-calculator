@@ -14,63 +14,73 @@ interface CarEl extends HTMLElement {
     diffNum: number
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.contextMenus.create({
-        id: "get-car-data-single",
-        title: "Single Car",
-        contexts: ["page"],
+if (chrome.contextMenus) {
+    chrome.runtime.onInstalled.addListener(() => {
+        chrome.contextMenus.create({
+            id: "get-car-data-single",
+            title: "Single Car",
+            contexts: ["page"],
+        });
+
+        chrome.contextMenus.create({
+            id: "get-red-flags",
+            title: "Red Flags",
+            contexts: ["page"],
+        });
+
+        chrome.contextMenus.create({
+            id: "get-car-data-multiple",
+            title: "Multiple Cars",
+            contexts: ["page"],
+        });
+
+        chrome.contextMenus.create({
+            id: "sort-cars",
+            title: "Sort Cars",
+            contexts: ["page"],
+        });
+
+        chrome.contextMenus.create({
+            id: "clear-black-list",
+            title: "Clear this Black list ",
+            contexts: ["page"],
+        });
+
+        chrome.contextMenus.create({
+            id: "black-list-listing",
+            title: "Black list listing",
+            contexts: ["link"],
+        });
     });
 
-    chrome.contextMenus.create({
-        id: "get-car-data-multiple",
-        title: "Multiple Cars",
-        contexts: ["page"],
+    chrome.contextMenus.onClicked.addListener((info, tab) => {
+        if (!tab) return
+        if (info.menuItemId === "get-car-data-single") {
+            getCarData('single', tab);
+        } else if (info.menuItemId === "get-red-flags") {
+            getCarData('red-flags', tab);
+        } else if (info.menuItemId === "get-car-data-multiple") {
+            getCarData('multiple', tab);
+        } else if (info.menuItemId === "sort-cars") {
+            sortCars(tab)
+        } else if (info.menuItemId === "clear-black-list") {
+            clearBlackList(tab)
+        } else if (info.menuItemId === "black-list-listing" && info.linkUrl){
+            blackListLink(info.linkUrl, tab)
+        }
     });
+}
 
-    chrome.contextMenus.create({
-        id: "sort-cars",
-        title: "Sort Cars",
-        contexts: ["page"],
+if (chrome.commands) {
+    chrome.commands.onCommand.addListener((command, tab) => {
+        if (!tab || !command) return
+        if (command === "get-car-data-single") {
+            getCarData('single', tab);
+        } else if (command === "get-car-data-multiple") {
+            getCarData('multiple', tab);
+        } 
     });
-
-    chrome.contextMenus.create({
-        id: "clear-black-list",
-        title: "Clear this Black list ",
-        contexts: ["page"],
-    });
-
-    chrome.contextMenus.create({
-        id: "black-list-listing",
-        title: "Black list listing",
-        contexts: ["link"],
-    });
-});
-
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-    if (!tab) return
-    if (info.menuItemId === "get-car-data-single") {
-        getCarData('single', tab);
-    } else if (info.menuItemId === "get-red-flags") {
-        getCarData('red-flags', tab);
-    } else if (info.menuItemId === "get-car-data-multiple") {
-        getCarData('multiple', tab);
-    } else if (info.menuItemId === "sort-cars") {
-        sortCars(tab)
-    } else if (info.menuItemId === "clear-black-list") {
-        clearBlackList(tab)
-    } else if (info.menuItemId === "black-list-listing" && info.linkUrl){
-        blackListLink(info.linkUrl, tab)
-    }
-});
-
-chrome.commands.onCommand.addListener((command, tab) => {
-    if (!tab || !command) return
-    if (command === "get-car-data-single") {
-        getCarData('single', tab);
-    } else if (command === "get-car-data-multiple") {
-        getCarData('multiple', tab);
-    } 
-});
+}
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=>{
     let [message, tab] = msg
