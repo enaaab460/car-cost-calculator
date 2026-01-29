@@ -312,7 +312,7 @@
                         pointRadius: 2,
                     },
                     {
-                        label: `Regression Line (y = (${m.toFixed(0)} * age) + ${b.toFixed(0)})`,
+                        label: `Regression Line (y = ${b.toFixed(0)} - (${(m*-1).toFixed(0)} * age(<${(b/-m).toFixed(0)}y)))`,
                         data: trendlineData,
                         type: 'line', 
                         borderColor: 'rgba(255, 99, 132, 1)',
@@ -320,7 +320,7 @@
                         pointRadius: 0, 
                     },
                     {
-                        label: `Fair Slope (y = (${om.toFixed(0)} * age) + ${ob.toFixed(0)})`,
+                        label: `Fair Slope (y = ${ob.toFixed(0)} - (${(om*-1).toFixed(0)} * age))`,
                         data: otl,
                         type: 'line', 
                         borderColor: 'cyan',
