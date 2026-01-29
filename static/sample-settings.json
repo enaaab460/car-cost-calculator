@@ -4,7 +4,7 @@
         "haggle": 15,
         "typicalLife": 15,
         "currentyear": 2026,
-        "redFlags": "salva[gj]e|rebuil|\\br title|rental|\\blease|accident|owners\\b|reconstruct|branded|Title issue|Title Brand|down(?!load)|sold|loss|damage|buy here pay here|fees?\\b|issue|n[o']t work|problem|bad\\b|\\brust|broke|stuck|need|noise|aftermarket|code|sound|recall|pop(s|ping)|leak|check engine|emission|break|broke|torn|tear|scratch|crack|fix|(for|as) parts|\\bdent|airbag",
+        "redFlags": "salva[gj]e|rebuilt\\b|\\br title|rental|\\blease|accident|owners\\b|reconstruct|branded|Title issue|Title Brand|down(?!load)|sold|loss|damage|buy here pay here|fees?\\b|issue|n[o']t work|problem|bad\\b|\\brust|broke|stuck|need|noise|aftermarket|code|sound|recall|pop(s|ping)|leak|check engine|emission|smog|break|broke|torn|tear|scratch|crack|fix|parts|\\bdent|airbag|gasket|charge|cost|inspection|tax|BHPH",
         "vinProvider": "https://www.nicb.org/vincheck?vin=%s",
         "recallProvider": "https://www.nhtsa.gov/recalls?vymm=%s",
         "alwaysSort": true
