@@ -306,7 +306,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                 var retVal: any[] = []
                 var flags = new Set()
                 const redFlagsRegex = new RegExp(redFlags, 'gi');
-                const baseExcludeSelectors = 'script, style, #ext-stats';
+                const baseExcludeSelectors = 'script, style, #ext-stats, header, footer, nav';
                 const excludeSelector = thisSelector.excludeSelector ? `${baseExcludeSelectors}, ${thisSelector.excludeSelector}` : baseExcludeSelectors;
                 var redText: {text: string, flags: Set<string>}[] = []
                 document.querySelector("#ext-stats")?.remove()
@@ -327,7 +327,7 @@ async function getCarData(mode: getCarDataModes, tab: chrome.tabs.Tab, append = 
                     if (parent.closest(excludeSelector)) return;
                     if (parent.tagName.includes("SCRIPT")) return;
 
-                    for (let j of [{l:"\n",e:"p"},{l:/[.,]\s/,e:"span"}]){
+                    for (let j of [{l:"\n",e:"p"},{l:/[.,!?]\s/,e:"span"}]){
                         let splitter = j.l
                         let search = text.search(splitter)
                         if (search == -1 || search == text.length-1) continue

@@ -434,15 +434,16 @@
         <div><label title={odometer ? (odometer/yearlyOdometer).toFixed(1) + "y" : ""}><span>Odometer (thou)</span><input type="number" bind:value={odometer} oninput={resetResult}></label></div>
         <div><label><span>Price (thou)</span><input type="number" bind:value={price} oninput={resetResult}></label></div>
     </div>
-    {#if (year != null || odometer != null)}
-        {@const spLen = name.split(" ").length}
-        <div class="mb-1">
+    <div class="mb-1">
+        {#if (year != null || odometer != null)}
             <button onclick={runCalculation}>Calculate</button>
-            {#if spLen > 1}
-                <button onclick={()=>kbb(false)} oncontextmenu={(e)=>{e.preventDefault();kbb(true)}}>KBB</button>
-                <button onclick={()=>edmunds(false)} oncontextmenu={(e)=>{e.preventDefault();edmunds(true)}}>Edmunds</button>
-            {/if}
-        </div>
+        {:else if (cost && typicalLife && !depreciationChart?.canvas)}
+            <button onclick={drawDepreciationChart}>Draw Depreciation</button>
+        {/if}
+        {#if name.split(" ").length > 1}
+            <button onclick={()=>kbb(false)} oncontextmenu={(e)=>{e.preventDefault();kbb(true)}}>KBB</button>
+            <button onclick={()=>edmunds(false)} oncontextmenu={(e)=>{e.preventDefault();edmunds(true)}}>Edmunds</button>
+        {/if}
         {#if resultText}
             <div bind:this={resultElement} 
                 style:color={
@@ -463,11 +464,7 @@
                 {@html resultText}
             </div>
         {/if}
-    {:else if (cost && typicalLife && !depreciationChart?.canvas)}
-        <div class="mb-1">
-            <button onclick={drawDepreciationChart}>Draw Depreciation</button>
-        </div>
-    {/if}
+    </div>
     <div class="mb-1">
         {#if singleExist}
             <button onclick={async ()=> {
@@ -540,7 +537,7 @@
         width: 5em;
         margin-left: 2em;
     }
-    .mb-1{
+    main > *{
         margin-bottom: 0.5em;
     }
 </style>

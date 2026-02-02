@@ -25,7 +25,7 @@
             "calculationMode": "multiple",
             "yearSelector": "h2",
             "odometerSelector": ".mileage",
-            "priceSelector": ".price-history",
+            "priceSelector": ".price-history,.label--price",
             "carSelector": "#list-results > .results-list > .results-target > ul > li.result-list-item"
         },
         {
@@ -85,12 +85,12 @@
         },
         {
             "calculationMode": "multiple",
-            "carSelector": ".vehicle-card",
+            "carSelector": "save-provider > ul > li:not(.listing-ad-row)",
             "domain": "cars.com/shopping",
             "id": 1761290579853,
-            "odometerSelector": ".mileage",
-            "priceSelector": ".primary-price",
-            "yearSelector": "h2.title"
+            "odometerSelector": "spark-card >div:last-child > div > div:last-child",
+            "priceSelector": "spark-card >div:last-child > div > div > p",
+            "yearSelector": "spark-card >div:last-child h2"
         },
         {
             "id": 1762246723552,
@@ -99,7 +99,8 @@
             "yearSelector": ".listing-title,#vehicle-title",
             "odometerSelector": ".listing-mileage,.msrp",
             "priceSelector": ".primary-price,.price-container",
-            "carSelector": "body"
+            "carSelector": "body",
+            "excludeSelector": "#consumer-reviews"
         },
         {
             "calculationMode": "single",
